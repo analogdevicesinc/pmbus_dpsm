@@ -667,7 +667,7 @@ int main(int argc, char * argv[]) {
 	    // CFLAGS=-g
 	    // export CFLAGS
 	    // .configure i686
-	    // MALLOC_TRACE=~/lt_pmbus/memory.txt
+	    // MALLOC_TRACE=~/pmbus_dpsm/memory.txt
 	    // export MALLOC_TRACE
 	    // echo "" > memory.txt
 	    // src/LT_PMBusApp

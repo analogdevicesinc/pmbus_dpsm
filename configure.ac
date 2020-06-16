@@ -17,7 +17,6 @@ AM_INIT_AUTOMAKE(LT_PMBusTest, LT_PMBusTest_version)
 AC_CONFIG_HEADERS(config.h)
 
 # Checks for programs.
-AC_PROG_LIBTOOL
 AC_PROG_CXX
 AC_PROG_INSTALL
 
