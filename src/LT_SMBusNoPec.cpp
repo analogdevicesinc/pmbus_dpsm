@@ -48,7 +48,7 @@ LT_SMBusNoPec::LT_SMBusNoPec() : LT_SMBusBase()
 #if ENABLE_I2C
   if (!LT_SMBusBase::open_)
   {
-    file_ = open("/dev/i2c-0", O_RDWR);
+    file_ = open("/dev/i2c-1", O_RDWR);
     if (LT_SMBusBase::file_ < 0)
       {
         throw LT_Exception("Fail to open");
@@ -88,7 +88,7 @@ LT_SMBusNoPec::LT_SMBusNoPec(uint32_t speed)
 #if ENABLE_I2C
   if (!LT_SMBusBase::open_)
     {
-      LT_SMBusBase::file_ = open("/dev/i2c-0", O_RDWR);
+      LT_SMBusBase::file_ = open("/dev/i2c-1", O_RDWR);
 
       if (LT_SMBusBase::file_ < 0)
       {

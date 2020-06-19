@@ -35,10 +35,27 @@ PMBus relies on a REPEATED START from the dev/i2c master.
 
 ## Targets
 
-This code has be used on Rasp Pi and with a DLN-2. Some Rasp Pi versons
+This code has be used on Rasp Pi and with a DLN-2. Some Raspberry Pi versons
 require enabling of the REPEATED START via linux commands. If REPEATED START
 does not work, search the internet for help. The DLN-2 was mainly used
 for debugging code on a laptop and is not recommended for production use.
+
+### Raspberry Pi 4
+
+Follow these steps:
+
+* Use the default OS that comes with the board
+* Enable I2C with raspi-config Tool
+* sudo apt-get install i2c-tools
+* sudo apt-get install libi2c-dev
+* Clone the code
+* cd pmbus_dpsm
+* ./configure
+* ./make
+* Connect a DC1962 or another demo board to the I2C lines
+* src/LT_PMBusApp -i
+
+This will run the application in interactive mode with a menu.
 
 ## Make
 
