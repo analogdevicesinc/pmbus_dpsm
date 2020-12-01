@@ -26,9 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "nvm_data_helpers.h"
-    
-//#define MACHINE_PTR uint32_t
-#define MACHINE_PTR uint64_t
 
 /********************************************************************
  * Function:        nvramNode_p nvramListNew(uint16_t dataIn, uint8_t pecIn, uint8_t addIn, uint8_t cmdIn);
@@ -150,7 +147,7 @@ uint8_t bufferNvmData(t_RECORD_NVM_DATA *pRecord)
 //  printf("Save Rec Ptr\n");
   record_pointer = pRecord;
   nWords = (uint16_t)(pRecord->baseRecordHeader.Length-8)/2;
-  words = (uint16_t *) ((MACHINE_PTR)pRecord+8); // Change (UINT32) to the size of an address on the target machine.
+  words = (uint16_t *) ((uint8_t *)pRecord+8);
 
   return 1;
 }
