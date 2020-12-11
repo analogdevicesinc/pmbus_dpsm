@@ -58,68 +58,117 @@ class LT_SMBusBase : public LT_SMBus
     //! SMBus write byte command
     //! @return error < 0
     int writeByte(uint8_t address,     //!< Slave address
-                   uint8_t command,     //!< Command byte
-                   uint8_t data         //!< Data to send
-                  );
+                  uint8_t command,     //!< Command byte
+                  uint8_t data         //!< Data to send
+                );
+
+    //! SMBus write byte command
+    //! @return void
+    int extendedWriteByte(uint8_t address,     //!< Slave address
+                          uint16_t command,    //!< Command word
+                          uint8_t data         //!< Data to send
+                         );
 
     //! SMBus write byte command for a list of addresses
     //! @return error < 0
     int writeBytes(uint8_t *addresses,         //!< Slave Addresses
-                    uint8_t *commands,          //!< Command bytes
-                    uint8_t *data,              //!< Data to send
-                    uint8_t no_addresses
-                   );
+                   uint8_t *commands,          //!< Command bytes
+                   uint8_t *data,              //!< Data to send
+                   uint8_t no_addresses
+                  );
 
     //! SMBus read byte command
     //! @return error < 0
     int readByte(uint8_t address,        //!< Slave Address
-                     uint8_t command         //!< Command byte
-                    );
+                 uint8_t command         //!< Command byte
+                );
+
+    //! SMBus read byte command
+    //! @return byte
+    int extendedReadByte(uint8_t address,        //!< Slave Address
+                         uint16_t command        //!< Command word
+                        );
 
     //! SMBus write word command
     //! @return error < 0
     int writeWord(uint8_t address,     //!< Slave Address
-                   uint8_t command,     //!< Command byte
-                   uint16_t data        //!< Data to send
-                  );
+                  uint8_t command,     //!< Command byte
+                  uint16_t data        //!< Data to send
+                 );
+
+   //! SMBus write word command
+    //! @return error < 0
+    int extendedWriteWord(uint8_t address,     //!< Slave Address
+                          uint16_t command,    //!< Command word
+                          uint16_t data        //!< Data to send
+                         );
 
     //! SMBus read word command
     //! @return error < 0
     int readWord(uint8_t address,      //!< Slave Address
-                      uint8_t command       //!< Command byte
-                     );
+                 uint8_t command       //!< Command byte
+                );
+
+    //! SMBus read word command
+    //! @return error < 0
+    int extendedReadWord(uint8_t address,      //!< Slave Address
+                         uint16_t command       //!< Command word
+                        );
 
     //! SMBus write block command
     //! @return error < 0
     int writeBlock(uint8_t address,        //!< Slave Address
-                    uint8_t command,        //!< Command byte
-                    uint8_t *block,         //!< Data to send
-                    uint16_t block_size
-                   );
+                   uint8_t command,        //!< Command byte
+                   uint8_t *block,         //!< Data to send
+                   uint16_t block_size
+                  );
+
+    //! SMBus write block command
+    //! @return void
+    int extendedWriteBlock(uint8_t address,        //!< Slave Address
+                            uint16_t command,       //!< Command word
+                            uint8_t *block,         //!< Data to send
+                            uint16_t block_size
+                           );
 
     //! SMBus write then read block command
     //! @return error < 0 | count
     int writeReadBlock(uint8_t address,         //!< Slave Address
-                           uint8_t command,         //!< Command byte
-                           uint8_t *block_out,      //!< Data to send
-                           uint16_t block_out_size, //!< Size of data to send
-                           uint8_t *block_in,       //!< Memory to receive data
-                           uint16_t block_in_size   //!< Size of receive data memory
-                          );
+                       uint8_t command,         //!< Command byte
+                       uint8_t *block_out,      //!< Data to send
+                       uint16_t block_out_size, //!< Size of data to send
+                       uint8_t *block_in,       //!< Memory to receive data
+                       uint16_t block_in_size   //!< Size of receive data memory
+                    );
 
     //! SMBus read block command
     //! @return error < 0
     int readBlock(uint8_t address,         //!< Slave Address
-                      uint8_t command,         //!< Command byte
-                      uint8_t *block,          //!< Memory to receive data
-                      uint16_t block_size      //!< Size of receive data memory
-                     );
+                  uint8_t command,         //!< Command byte
+                  uint8_t *block,          //!< Memory to receive data
+                  uint16_t block_size      //!< Size of receive data memory
+                 );
+
+    //! SMBus read block command
+    //! @return error < 0
+    int extendedReadBlock(uint8_t address,         //!< Slave Address
+                          uint16_t command,        //!< Command word
+                          uint8_t *block,          //!< Memory to receive data
+                          uint16_t block_size      //!< Size of receive data memory
+                         );
 
     //! SMBus send byte command
     //! @return error < 0
     int sendByte(uint8_t address,      //!< Slave Address
-                  uint8_t command       //!< Command byte
+                 uint8_t command       //!< Command byte
                  );
+
+    //! SMBus send byte command
+    //! @return error < 0
+    int extendedSendByte(uint8_t address,      //!< Slave Address
+                         uint16_t command      //!< Command word
+                        );
+
 
     //! Perform ARA
     //! @return error < 0

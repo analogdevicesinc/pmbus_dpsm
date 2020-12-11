@@ -181,16 +181,19 @@ int loop()
 	  	menu_3_basic_commands();
 	  	break;
 	case 4 :
-		device = (devices = detector->getDevices());
+		device = devices;
 		while (*device != NULL)
 		{
-			printf("  Device: ");
-			((*device)->getType());
+// Note workign with Raspberry Pi OS on Raspberry Pi 4
+//			printf("  Device: ");
+//			printf((*device)->getType());
 			printf(" Address: ");
 			printf("0x%x", (*device)->getAddress());
 
-			printf(", Speed: ");
-			printf("0x%x\n", (*device)->getMaxSpeed());
+// Did not port from Linduino
+//			printf(", Speed: ");
+//			(*device)->probeSpeed();
+//			printf("0x%x\n", (*device)->getMaxSpeed());
 
 			// Switch the device to Pec
 			pmbusNoPec->enablePec((*device)->getAddress());

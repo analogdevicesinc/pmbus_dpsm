@@ -102,36 +102,62 @@ class LT_SMBus
     //! SMBus write byte command
     //! @return error < 0
     virtual int writeByte(uint8_t address,   //!< Slave address
-                           uint8_t command,   //!< Command byte
-                           uint8_t data       //!< Data to send
-                          ) = 0;
+                          uint8_t command,   //!< Command byte
+                          uint8_t data       //!< Data to send
+                        ) = 0;
+
+    //! SMBus write byte command
+    //! @return void
+    virtual int extendedWriteByte(uint8_t address,   //!< Slave address
+                                   uint16_t command,   //!< Command word
+                                   uint8_t data       //!< Data to send
+                                  ) = 0;
 
     //! SMBus write byte command for a list of addresses
     //! @return error < 0
     virtual int writeBytes(uint8_t *addresses,     //!< Slave Addresses
-                            uint8_t *commands,      //!< Command bytes
-                            uint8_t *data,          //!< Data to send
-                            uint8_t no_addresses
-                           ) = 0;
+                           uint8_t *commands,      //!< Command bytes
+                           uint8_t *data,          //!< Data to send
+                           uint8_t no_addresses
+                          ) = 0;
 
     //! SMBus read byte command
     //! @return error < 0
     virtual int readByte(uint8_t address,     //!< Slave Address
-                             uint8_t command      //!< Command byte
-                            ) = 0;
+                         uint8_t command      //!< Command byte
+                        ) = 0;
+
+    //! SMBus read byte command
+    //! @return byte
+    virtual int extendedReadByte(uint8_t address,     //!< Slave Address
+                                 uint16_t command     //!< Command word
+                                ) = 0;
 
     //! SMBus write word command
-     //! @return error < 0
+    //! @return error < 0
    virtual int writeWord(uint8_t address,   //!< Slave Address
-                           uint8_t command,   //!< Command byte
-                           uint16_t data      //!< Data to send
-                          ) = 0;
+                         uint8_t command,   //!< Command byte
+                         uint16_t data      //!< Data to send
+                        ) = 0;
+
+    //! SMBus write word command
+    //! @return error < 0
+   virtual int extendedWriteWord(uint8_t address,   //!< Slave Address
+                                 uint16_t command,  //!< Command word
+                                 uint16_t data      //!< Data to send
+                                ) = 0;
 
     //! SMBus read word command
     //! @return error < 0
     virtual int readWord(uint8_t address,    //!< Slave Address
-                              uint8_t command     //!< Command byte
-                             ) = 0;
+                         uint8_t command     //!< Command byte
+                        ) = 0;
+
+    //! SMBus read word command
+    //! @return error < 0
+    virtual int extendedReadWord(uint8_t address,    //!< Slave Address
+                                 uint16_t command    //!< Command word
+                                ) = 0;
 
     //! SMBus write block command
     //! @return error < 0
@@ -141,29 +167,51 @@ class LT_SMBus
                             uint16_t block_size
                            ) = 0;
 
+    //! SMBus write block command
+    //! @return void
+    virtual int extendedWriteBlock(uint8_t address,    //!< Slave Address
+                                    uint16_t command,   //!< Command word
+                                    uint8_t *block,     //!< Data to send
+                                    uint16_t block_size
+                                   ) = 0;
+
     //! SMBus write then read block command
     //! @return error < 0
     virtual int writeReadBlock(uint8_t address,         //!< Slave Address
-                                   uint8_t command,         //!< Command byte
-                                   uint8_t *block_out,      //!< Data to send
-                                   uint16_t block_out_size, //!< Size of data to send
-                                   uint8_t *block_in,       //!< Memory to receive data
-                                   uint16_t block_in_size   //!< Size of receive data memory
-                                  ) = 0;
+                               uint8_t command,         //!< Command byte
+                               uint8_t *block_out,      //!< Data to send
+                               uint16_t block_out_size, //!< Size of data to send
+                               uint8_t *block_in,       //!< Memory to receive data
+                               uint16_t block_in_size   //!< Size of receive data memory
+                            ) = 0;
 
     //! SMBus read block command
     //! @return error < 0 | count
     virtual int readBlock(uint8_t address,     //!< Slave Address
-                              uint8_t command,     //!< Command byte
-                              uint8_t *block,      //!< Memory to receive data
-                              uint16_t block_size  //!< Size of receive data memory
-                             ) = 0;
+                          uint8_t command,     //!< Command byte
+                          uint8_t *block,      //!< Memory to receive data
+                          uint16_t block_size  //!< Size of receive data memory
+                        ) = 0;
+
+   //! SMBus read block command
+    //! @return error < 0 | count
+    virtual int extendedReadBlock(uint8_t address,     //!< Slave Address
+                                  uint16_t command,    //!< Command word
+                                  uint8_t *block,      //!< Memory to receive data
+                                  uint16_t block_size  //!< Size of receive data memory
+                                 ) = 0;
 
     //! SMBus send byte command
     //! @return error < 0
     virtual int sendByte(uint8_t address,    //!< Slave Address
-                          uint8_t command     //!< Command byte
-                         ) = 0;
+                         uint8_t command     //!< Command byte
+                        ) = 0;
+
+    //! SMBus send byte command
+    //! @return error < 0
+    virtual int extendedSendByte(uint8_t address,    //!< Slave Address
+                                 uint16_t command    //!< Command word
+                                ) = 0;
 
     //! Read with the address and command in loop until ack, then issue stop
     //! @return error < 0

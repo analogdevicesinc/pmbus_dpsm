@@ -44,6 +44,8 @@ extern "C"
 #include <stdio.h>
 #endif
 }
+#include <memory.h>
+
 #include "LT_Exception.h"
 #include "LT_SMBusBase.h"
 
@@ -107,6 +109,31 @@ int LT_SMBusBase::writeByte(uint8_t address, uint8_t command, uint8_t data)
 #endif
 }
 
+int LT_SMBusBase::extendedWriteByte(uint8_t address, uint16_t command, uint8_t data)
+{
+#if ENABLE_I2C
+  setPec();
+  if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    throw LT_Exception("Extended Write Byte: fail address");
+
+  uint8_t buffer[3];
+  buffer[0] = command & 0xFF;
+  buffer[1] = command >> 8;
+  buffer[2] = data;
+     
+  if (write(LT_SMBusBase::file_, buffer, 3) != 3)
+  {
+    throw LT_Exception("Extended Write Byte: fail data");
+  }
+  else
+    return (int) 0;
+
+#else
+  printf("Extended Write Byte: addr 0x%x02, cmd 0x%x04, data 0x%x02\n", address, command, data);
+  return 0;
+#endif
+}
+
 void LT_SMBusBase::changeSpeed(uint32_t speed)
 {
   throw LT_Exception("changeSpeed not implemented");
@@ -148,10 +175,37 @@ int LT_SMBusBase::readByte(uint8_t address, uint8_t command)
     throw LT_Exception("Read Byte: fail data");
   }
   else
-
-  return (int) result;
+    return (int) result;
 #else
   printf("Read Byte: addr 0x%x02, cmd 0x%x02\n", address, command);
+  return 0;
+#endif
+}
+
+int LT_SMBusBase::extendedReadByte(uint8_t address, uint16_t command)
+{
+#if ENABLE_I2C
+  
+  setPec();
+  if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    throw LT_Exception("Extended Read Byte: fail address");
+    
+  uint8_t buffer[2];
+  buffer[0] = command & 0xFF;
+  buffer[1] = command >> 8;
+     
+  if (write(LT_SMBusBase::file_, buffer, 2) != 2)
+    throw LT_Exception("Extended Read Byte: fail");
+    
+  if (read(LT_SMBusBase::file_, buffer, 1) != 1)
+  {
+    throw LT_Exception("Extended Read Byte: fail");
+  }
+  else
+    return (int) buffer[0];
+
+#else
+  printf("Extended Read Byte: addr 0x%x02, cmd 0x%x04\n", address, command);
   return 0;
 #endif
 }
@@ -176,6 +230,33 @@ int LT_SMBusBase::writeWord(uint8_t address, uint8_t command, uint16_t data)
 #endif
 }
 
+int LT_SMBusBase::extendedWriteWord(uint8_t address, uint16_t command, uint16_t data)
+{
+#if ENABLE_I2C
+
+  setPec();
+  if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    throw LT_Exception("Extended Write Word: fail address");
+
+  uint8_t buffer[4];
+  buffer[0] = command & 0xFF;
+  buffer[1] = command >> 8;
+  buffer[2] = (uint8_t) (data & 0xff);
+  buffer[3] = (uint8_t) (data >> 8);
+
+  if (write(LT_SMBusBase::file_, buffer, 4) != 4)
+  {
+    throw LT_Exception("Extended Write Word: fail");
+  }
+  else
+    return 0;
+
+#else
+  printf("Extended Write Word: addr 0x%x02, cmd 0x%x04, data 0x%x04\n", address, command, data);
+  return 0;
+#endif
+}
+
 int LT_SMBusBase::readWord(uint8_t address, uint8_t command)
 {
 #if ENABLE_I2C
@@ -195,6 +276,33 @@ int LT_SMBusBase::readWord(uint8_t address, uint8_t command)
     return (int) result;
 #else
   printf("Read Word: addr 0x%x02, cmd 0x%x02\n", address, command);
+  return 0;
+#endif
+}
+
+int LT_SMBusBase::extendedReadWord(uint8_t address, uint16_t command)
+{
+#if ENABLE_I2C
+    
+  setPec();
+  if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    throw LT_Exception("Extended Read Word: fail address");
+    
+  uint8_t buffer[2];
+  buffer[0] = command & 0xFF;
+  buffer[1] = command >> 8;
+     
+  if (write(LT_SMBusBase::file_, buffer, 2) != 2)
+    throw LT_Exception("Extended Read Word: fail");
+    
+  if (read(LT_SMBusBase::file_, buffer, 2) != 2)
+  {
+    throw LT_Exception("Extended Read Word: fail");
+  }
+  else
+    return (int) ((buffer[1] << 8) | buffer[0]);
+#else
+  printf("Extended Read Word: addr 0x%x02, cmd 0x%x04\n", address, command);
   return 0;
 #endif
 }
@@ -223,6 +331,31 @@ int LT_SMBusBase::writeBlock(uint8_t address, uint8_t command,
   return 0;
 #else
   printf("Write Block: addr 0x%x02, cmd 0x%x02, size 0x%x02\n", address, command, block_size);
+  return 0;
+#endif
+}
+
+int LT_SMBusBase::extendedWriteBlock(uint8_t address, uint16_t command,
+                              uint8_t *block, uint16_t block_size)
+{
+#if ENABLE_I2C
+
+  setPec();
+  if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    throw LT_Exception("Extended Write Block: fail address");
+
+  uint8_t data[block_size + 3];
+  data[0] = command & 0xFF;
+  data[1] = command >> 8;
+  data[2] = block_size;
+  memcpy(data + 3, block, block_size);
+
+  if (write(LT_SMBusBase::file_, data, block_size + 3))
+    throw LT_Exception("Extended Write Block: fail");
+  else
+    return 0;
+#else
+  printf("Extended Write Block: addr 0x%x02, cmd 0x%x04, size 0x%x02\n", address, command, block_size);
   return 0;
 #endif
 }
@@ -266,6 +399,35 @@ int LT_SMBusBase::readBlock(uint8_t address, uint8_t command,
 #endif
 }
 
+int LT_SMBusBase::extendedReadBlock(uint8_t address, uint16_t command,
+                                uint8_t *block, uint16_t block_size)
+{
+#if ENABLE_I2C
+
+  setPec();
+  if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    throw LT_Exception("Extended Read Block: fail address");
+
+  uint8_t data[2];
+  data[0] = command & 0xFF;
+  data[1] = command >> 8;
+
+  if (write(LT_SMBusBase::file_, data, 2))
+    throw LT_Exception("Extended Read Block: fail");
+    
+  if (read(LT_SMBusBase::file_, block, block_size) != block_size)
+  {
+    throw LT_Exception("Extended Read Block: fail");
+  }
+  else
+    return 0;
+  
+#else
+  printf("Extended Read Block: addr 0x%x02, cmd 0x%x04, size 0x%x02\n", address, command, block_size);
+  return 0;
+#endif
+}
+
 int LT_SMBusBase::sendByte(uint8_t address, uint8_t command)
 {
 #if ENABLE_I2C
@@ -284,6 +446,31 @@ int LT_SMBusBase::sendByte(uint8_t address, uint8_t command)
   return 0;
 #endif
 }
+
+int LT_SMBusBase::extendedSendByte(uint8_t address, uint16_t command)
+{
+#if ENABLE_I2C
+
+  setPec();
+  if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    throw LT_Exception("Extended Send Byte: fail address");
+
+  uint8_t buffer[2];
+  buffer[0] = command & 0xFF;
+  buffer[1] = command >> 8;
+     
+  if (write(LT_SMBusBase::file_, buffer, 2) != 2)
+  {
+    throw LT_Exception("Extended Send Byte: fail data");
+  }
+  else
+    return (int) 0;
+#else
+  printf("Extended Send Byte: addr 0x%x02, cmd 0x%x04\n", address, command);
+  return 0;
+#endif
+}
+
 
 int LT_SMBusBase::readAlert(void)
 {
