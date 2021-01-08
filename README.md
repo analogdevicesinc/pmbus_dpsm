@@ -57,15 +57,25 @@ Follow these steps:
 
 This will run the application in interactive mode with a menu.
 
-## Make
+## Automake
 
-The build envionrment is autoconfig. Be sure to set the target as you would
-for any autoconfig project.
+Be sure to set the target as you would for any autoconfig project.
 
 $ ./configure
 $ make
 
-## Clean
+## Automake Clean
 
 $ make clean
 $ make distclean
+
+## CMake
+
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+
+## CMake Clean
+
+$ make clean
