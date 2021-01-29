@@ -55,6 +55,7 @@ list(APPEND _sources
 	LT_PMBusDeviceLTC2974.cpp
 	LT_PMBusDeviceLTC3884.cpp
 	LT_PMBusDeviceLTM4676.cpp
-	LT_PMBusSpeedTest.cpp)
+	LT_PMBusSpeedTest.cpp
+	LT_Dongle.cpp)
 
 add_executable(lt-pmbusapp LT_PMBusApp.cpp ${_sources})

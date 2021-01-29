@@ -25,25 +25,64 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#else
-#include <stdlib.h>
-#endif
-#include <stdexcept>
-#include <string.h>
+#ifndef LT_Dongle_H_
+#define LT_Dongle_H_
 
-using namespace std;
+#include <stdint.h>
 
-class LT_Exception : public exception
+class LT_Dongle
 {
-private:
-    const char* desc;
-    char auxDesc;
-public:
-    LT_Exception(const char* desc) throw();
-    LT_Exception(const char* desc, char auxDesc) throw();
-    ~LT_Exception() throw();
+  protected:
+    static bool open_;          //!< Used to ensure initialisation of i2c once
+    static int32_t file_;
 
-    const char* what() const throw();
+
+  public:
+
+    enum TransactionState { STARTED, RESTARTED, STOPPED };
+    enum ProtocolState {  IDLE, ADDRESS1, ADDRESS2, SEND,
+                        COMMAND, MODE, AUX, READ_BYTE, READ_WORD, READ_BLOCK, READ_GPIO, WRITE_BYTE, WRITE_WORD, WRITE_GPIO, DATA };
+
+
+    LT_Dongle ();
+    LT_Dongle(char *dev);
+    
+    ~LT_Dongle();
+
+    void clearBuffer();
+    
+    //! Change the speed of the bus.
+    void changeSpeed(uint32_t speed  //!< the speed
+                    );
+
+    //! Get the speed of the bus.
+    uint32_t getSpeed();
+
+    void setPec();
+    void setNoPec();
+    
+    void reset();
+    
+    char recvChar();
+    void sendString(const char *s);
+    
+    void convertString(const char *s, int length, uint8_t *data);
+    
+    char *toStateString(ProtocolState state);
+    
+    void sendRecvBytes();
+    void sendReadByte();
+    void sendReadWord();
+    void sendReadBlock();
+    void sendReadGpio();
+    void sendWriteByte();
+    void sendWriteWord();
+    void sendWriteGpio();
+
+    //! Process command
+    void processCommand(uint8_t command
+                                );
+
 };
+
+#endif /* LT_Dongle_H_ */

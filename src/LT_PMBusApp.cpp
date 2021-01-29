@@ -51,6 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <LT_PMBusDetect.h>
 #include <LT_Nvm.h>
 #include "data.h"
+#include <LT_Dongle.h>
 
 using namespace std;
 
@@ -60,6 +61,7 @@ static LT_PMBus *pmbusNoPec;
 static LT_PMBus *pmbusPec;
 static LT_SMBus *smbus;
 static LT_PMBus *pmbus;
+static LT_Dongle *dongle;
 static LT_PMBusDetect *detector;
 static LT_PMBusDevice **devices;
 static LT_PMBusDevice **device;
@@ -643,6 +645,26 @@ void menu_3_basic_commands()
 	while (user_command != 'm');
 }
 
+int dongleLoop()
+{
+
+	return 0;
+}
+
+int dongleCommandLineInterface()
+{
+	char ch;
+	
+	ch = dongle->recvChar();
+	if (ch == '\n' || ch == '\n')
+		return 1;
+	if (ch == 'q')
+		return 0;
+	
+	dongle->processCommand(ch);
+	return 1;
+}
+
 static void sig_abort(int signo)
 {
   delete smbus;
@@ -677,272 +699,302 @@ int main(int argc, char * argv[]) {
 	    // start
 	    // info symbol sym
    
-
-
-
-
-
-
-        while ((opt = getopt(argc, argv, "d:s:e:c:p:v:x:i ")) != -1) {
+        while ((opt = getopt(argc, argv, "d:s:e:c:p:v:x:i:g:l ")) != -1) {
 	        switch (opt) {
-	        case 'd':
+	        case 'd': // Device
 			printf("Operate with device %s\n", optarg);
 			dev = optarg;
 	        	break;
-	        case 'p':
-				printf("Program with file %s\n", optarg);
-	    		mtrace();
-				if (dev != NULL)
-				{
-					smbusNoPec = new LT_SMBusNoPec(dev);
-					smbusPec = new LT_SMBusPec(dev);
-				}
-				else
-				{
-					smbusNoPec = new LT_SMBusNoPec();
-					smbusPec = new LT_SMBusPec();
-				}
-				pmbusNoPec = new LT_PMBus(smbusNoPec);
-				pmbusPec = new LT_PMBus(smbusPec);
-				smbus = smbusNoPec;
-				pmbus = pmbusNoPec;
-				program_nvm(optarg);
-				verify_nvm(optarg);
-				pmbus->resetGlobal();
-				muntrace();
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-				exit(EXIT_SUCCESS);
-	            		break;
-	        case 'i':
+	        case 'p': // Program using file
+			printf("Program with file %s\n", optarg);
+			mtrace();
+			if (dev != NULL)
+			{
+				smbusNoPec = new LT_SMBusNoPec(dev);
+				smbusPec = new LT_SMBusPec(dev);
+			}
+			else
+			{
+				smbusNoPec = new LT_SMBusNoPec();
+				smbusPec = new LT_SMBusPec();
+			}
+			pmbusNoPec = new LT_PMBus(smbusNoPec);
+			pmbusPec = new LT_PMBus(smbusPec);
+			smbus = smbusNoPec;
+			pmbus = pmbusNoPec;
+			program_nvm(optarg);
+			verify_nvm(optarg);
+			pmbus->resetGlobal();
+			muntrace();
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			exit(EXIT_SUCCESS);
+			break;
+	        case 'i': // Interactive
 	        	mtrace();
 	        	if (dev != NULL)
 		    	{
-					smbusNoPec = new LT_SMBusNoPec(dev);
-					smbusPec = new LT_SMBusPec(dev);
-				}
-				else
-				{
-					smbusNoPec = new LT_SMBusNoPec();
-					smbusPec = new LT_SMBusPec();
-				}
-				pmbusNoPec = new LT_PMBus(smbusNoPec);
-				pmbusPec = new LT_PMBus(smbusPec);
-				smbus = smbusNoPec;
-				pmbus = pmbusNoPec;
-				detector = new LT_PMBusDetect(pmbus);
-		   		detector->detect();
-		   		devices = detector->getDevices();
-				print_title();
-				print_prompt();
-	    		while(loop());
-	    		muntrace();
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-				exit(EXIT_SUCCESS);
+				smbusNoPec = new LT_SMBusNoPec(dev);
+				smbusPec = new LT_SMBusPec(dev);
+			}
+			else
+			{
+				smbusNoPec = new LT_SMBusNoPec();
+				smbusPec = new LT_SMBusPec();
+			}
+			pmbusNoPec = new LT_PMBus(smbusNoPec);
+			pmbusPec = new LT_PMBus(smbusPec);
+			smbus = smbusNoPec;
+			pmbus = pmbusNoPec;
+			detector = new LT_PMBusDetect(pmbus);
+			detector->detect();
+			devices = detector->getDevices();
+			print_title();
+			print_prompt();
+			while(loop());
+			muntrace();
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			exit(EXIT_SUCCESS);
 	            break;
-	        case 'v':
+	        case 'v': // Dump Fault Logs
                         mtrace();
 	        	if (dev != NULL)
-		    		{
+			{
 				smbusNoPec = new LT_SMBusNoPec(dev);
 				smbusPec = new LT_SMBusPec(dev);
-				}
-				else
-				{
+			}
+			else
+			{
 				smbusNoPec = new LT_SMBusNoPec();
 				smbusPec = new LT_SMBusPec();
+			}
+			pmbusNoPec = new LT_PMBus(smbusNoPec);
+			pmbusPec = new LT_PMBus(smbusPec);
+			smbus = smbusNoPec;
+			pmbus = pmbusNoPec;
+			detector = new LT_PMBusDetect(pmbus);
+			detector->detect();
+			devices = detector->getDevices();
+			device = devices;
+			holder = optarg;
+			opt_address = strtol(holder, NULL, 16);
+			while (*device != NULL)
+			{
+				if((*device)->getAddress() == opt_address)
+				{
+					if((*device)->hasFaultLog())
+					{
+						printf("Fault log for 0x%02x\n", (*device)->getAddress());					
+						(*device)->printFaultLog();
+					}
+					else
+					printf("No fault log for 0x%02x\n", (*device)->getAddress());
 				}
-				pmbusNoPec = new LT_PMBus(smbusNoPec);
-				pmbusPec = new LT_PMBus(smbusPec);
-				smbus = smbusNoPec;
-				pmbus = pmbusNoPec;
-				detector = new LT_PMBusDetect(pmbus);
-		   		detector->detect();
-		   		devices = detector->getDevices();
-                                device = devices;
-                              	holder = optarg;
-        			opt_address = strtol(holder, NULL, 16);
-                                while (*device != NULL){
-                                   if((*device)->getAddress() == opt_address){
-					if((*device)->hasFaultLog()){
-					   printf("Fault log for 0x%02x\n", (*device)->getAddress());					
-					   (*device)->printFaultLog();
-				        }
-				        else
-					   printf("No fault log for 0x%02x\n", (*device)->getAddress());
-				    }
-				   device++;
-                                }
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-				exit(EXIT_SUCCESS);
-	        	        break;
-                   case 'e':
+				device++;
+			}
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			exit(EXIT_SUCCESS);
+			break;
+                   case 'e': // Enable Fault Logs
                         mtrace();
 	        	if (dev != NULL)
-		    		{
+			{
 				smbusNoPec = new LT_SMBusNoPec(dev);
 				smbusPec = new LT_SMBusPec(dev);
-				}
-				else
-				{
+			}
+			else
+			{
 				smbusNoPec = new LT_SMBusNoPec();
 				smbusPec = new LT_SMBusPec();
+			}
+			pmbusNoPec = new LT_PMBus(smbusNoPec);
+			pmbusPec = new LT_PMBus(smbusPec);
+			smbus = smbusNoPec;
+			pmbus = pmbusNoPec;
+			detector = new LT_PMBusDetect(pmbus);
+			detector->detect();
+			devices = detector->getDevices();
+			device = devices;
+			holder = optarg;
+			opt_address = strtol(holder, NULL, 16);
+			opt_address = strtol(holder, NULL, 16);
+			while (*device != NULL)
+			{
+				if((*device)->getAddress() == opt_address)
+				{
+					(*device)->enableFaultLog();
+					printf("Fault log for 0x%02x Enabled\n", (*device)->getAddress());					
 				}
-				pmbusNoPec = new LT_PMBus(smbusNoPec);
-				pmbusPec = new LT_PMBus(smbusPec);
-				smbus = smbusNoPec;
-				pmbus = pmbusNoPec;
-				detector = new LT_PMBusDetect(pmbus);
-		   		detector->detect();
-		   		devices = detector->getDevices();
-                                device = devices;
-				holder = optarg;
-        			opt_address = strtol(holder, NULL, 16);
-        			opt_address = strtol(holder, NULL, 16);
-                                while (*device != NULL){
-                                   if((*device)->getAddress() == opt_address){
-					   (*device)->enableFaultLog();
-    					   printf("Fault log for 0x%02x Enabled\n", (*device)->getAddress());					
-				    }
-				   device++;
-                                }
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-				exit(EXIT_SUCCESS);
+				device++;
+			}
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			exit(EXIT_SUCCESS);
 	        	break;
-                   case 'c':
+                   case 'c': // Clear Fault Logs
                         mtrace();
 	        	if (dev != NULL)
-		    		{
+			{
 				smbusNoPec = new LT_SMBusNoPec(dev);
 				smbusPec = new LT_SMBusPec(dev);
-				}
-				else
-				{
+			}
+			else
+			{
 				smbusNoPec = new LT_SMBusNoPec();
 				smbusPec = new LT_SMBusPec();
-				}
-				pmbusNoPec = new LT_PMBus(smbusNoPec);
-				pmbusPec = new LT_PMBus(smbusPec);
-				smbus = smbusNoPec;
-				pmbus = pmbusNoPec;
-				detector = new LT_PMBusDetect(pmbus);
-		   		detector->detect();
-		   		devices = detector->getDevices();
-                                device = devices;
-				holder = optarg;
-        			opt_address = strtol(holder, NULL, 16);
-                                while (*device != NULL)
+			}
+			pmbusNoPec = new LT_PMBus(smbusNoPec);
+			pmbusPec = new LT_PMBus(smbusPec);
+			smbus = smbusNoPec;
+			pmbus = pmbusNoPec;
+			detector = new LT_PMBusDetect(pmbus);
+			detector->detect();
+			devices = detector->getDevices();
+			device = devices;
+			holder = optarg;
+			opt_address = strtol(holder, NULL, 16);
+			while (*device != NULL)
+			{
+				if((*device)->getAddress() == opt_address)
 				{
-                                if((*device)->getAddress() == opt_address){
 					(*device)->clearFaultLog();
-    					printf("Clearing Fault log for 0x%02x \n", (*device)->getAddress());					
-				   }
+					printf("Clearing Fault log for 0x%02x \n", (*device)->getAddress());					
+				}
 				device++;
-                                }
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-				exit(EXIT_SUCCESS);
+			}
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			exit(EXIT_SUCCESS);
 	        	break;
-                   case 's':
+                   case 's': // Store Fault Logs
                         mtrace();
 	        	if (dev != NULL)
-		    		{
+			{
 				smbusNoPec = new LT_SMBusNoPec(dev);
 				smbusPec = new LT_SMBusPec(dev);
-				}
-				else
-				{
+			}
+			else
+			{
 				smbusNoPec = new LT_SMBusNoPec();
 				smbusPec = new LT_SMBusPec();
-				}
-				pmbusNoPec = new LT_PMBus(smbusNoPec);
-				pmbusPec = new LT_PMBus(smbusPec);
-				smbus = smbusNoPec;
-				pmbus = pmbusNoPec;
-				detector = new LT_PMBusDetect(pmbus);
-		   		detector->detect();
-		   		devices = detector->getDevices();
-                                device = devices;
-				holder = optarg;
-        			opt_address = strtol(holder, NULL, 16);
-                                while (*device != NULL)
+			}
+			pmbusNoPec = new LT_PMBus(smbusNoPec);
+			pmbusPec = new LT_PMBus(smbusPec);
+			smbus = smbusNoPec;
+			pmbus = pmbusNoPec;
+			detector = new LT_PMBusDetect(pmbus);
+			detector->detect();
+			devices = detector->getDevices();
+			device = devices;
+			holder = optarg;
+			opt_address = strtol(holder, NULL, 16);
+			while (*device != NULL)
+			{
+				if((*device)->getAddress() == opt_address)
 				{
-                                if((*device)->getAddress() == opt_address){
 					(*device)->storeFaultLog();
-    					printf("Storing Fault log for 0x%02x \n", (*device)->getAddress());					
-				   }
+					printf("Storing Fault log for 0x%02x \n", (*device)->getAddress());					
+				}
 				device++;
-                                }
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-				exit(EXIT_SUCCESS);
+			}
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			exit(EXIT_SUCCESS);
 	        	break;
-                   case 'x':
+                   case 'x': // Disable Fault Logs
                         mtrace();
 	        	if (dev != NULL)
-		    		{
+			{
 				smbusNoPec = new LT_SMBusNoPec(dev);
 				smbusPec = new LT_SMBusPec(dev);
-				}
-				else
-				{
+			}
+			else
+			{
 				smbusNoPec = new LT_SMBusNoPec();
 				smbusPec = new LT_SMBusPec();
-				}
-				pmbusNoPec = new LT_PMBus(smbusNoPec);
-				pmbusPec = new LT_PMBus(smbusPec);
-				smbus = smbusNoPec;
-				pmbus = pmbusNoPec;
-				detector = new LT_PMBusDetect(pmbus);
-		   		detector->detect();
-		   		devices = detector->getDevices();
-                                device = devices;
-				holder = optarg;
-        			opt_address = strtol(holder, NULL, 16);
-                                while (*device != NULL)
+			}
+			pmbusNoPec = new LT_PMBus(smbusNoPec);
+			pmbusPec = new LT_PMBus(smbusPec);
+			smbus = smbusNoPec;
+			pmbus = pmbusNoPec;
+			detector = new LT_PMBusDetect(pmbus);
+			detector->detect();
+			devices = detector->getDevices();
+			device = devices;
+			holder = optarg;
+			opt_address = strtol(holder, NULL, 16);
+			while (*device != NULL)
+			{
+				if((*device)->getAddress() == opt_address)
 				{
-                                if((*device)->getAddress() == opt_address){
 					(*device)->disableFaultLog();
-    					printf("Disabling Fault log for 0x%02x \n", (*device)->getAddress());					
-				   }
+					printf("Disabling Fault log for 0x%02x \n", (*device)->getAddress());					
+				}
 				device++;
-                                }
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-				exit(EXIT_SUCCESS);
+			}
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			exit(EXIT_SUCCESS);
 	        	break;
-	        default: /* '?' */
-				delete(detector);
-				delete(pmbusPec);
-				delete(pmbusNoPec);
-				delete(smbusPec);
-				delete(smbusNoPec);
-	            fprintf(stderr, "Usage: %s [-d dev] ([-p file] | [-v address] | [-x address] |\n   [-e address] | [-s address] | [-c address] | [-i]\n", argv[0]);
-	            exit(EXIT_FAILURE);
+		case 'g' : // DC1613A Dongle
+	        	mtrace();
+	        	if (dev != NULL)
+			{
+				dongle = new LT_Dongle(dev);
+			}
+			else
+			{
+				dongle = new LT_Dongle();
+			}
+			while(dongleLoop());
+			muntrace();
+			delete(dongle);
+			exit(EXIT_SUCCESS);
+		case 'l' : // DC1613A Dongle CLI
+	        	mtrace();
+	        	if (dev != NULL)
+			{
+				dongle = new LT_Dongle(dev);
+			}
+			else
+			{
+				dongle = new LT_Dongle();
+			}
+			while(dongleCommandLineInterface());
+			muntrace();
+			delete(dongle);
+			exit(EXIT_SUCCESS);
+		default: /* '?' Help */
+			delete(detector);
+			delete(pmbusPec);
+			delete(pmbusNoPec);
+			delete(smbusPec);
+			delete(smbusNoPec);
+			fprintf(stderr, "Usage: %s [-d dev] ([-p file] | [-v address] | [-x address] |\n   [-e address] | [-s address] | [-c address] | [-i] | [-g] | [-l]\n", argv[0]);
+			exit(EXIT_FAILURE);
 	        }
 	    }
 	} catch (LT_Exception ex)
@@ -957,7 +1009,7 @@ int main(int argc, char * argv[]) {
 	delete(pmbusNoPec);
 	delete(smbusPec);
 	delete(smbusNoPec);
-    fprintf(stderr, "Usage: %s [-d dev] ([-p file] | [-v address] | [-x address] |\n   [-e address] | [-s address] | [-c address] | [-i])\n", argv[0]);
-    exit(EXIT_FAILURE);
+	fprintf(stderr, "Usage: %s [-d dev] ([-p file] | [-v address] | [-x address] |\n   [-e address] | [-s address] | [-c address] | [-i] | [-g] | [-l])\n", argv[0]);
+	exit(EXIT_FAILURE);
 }
 

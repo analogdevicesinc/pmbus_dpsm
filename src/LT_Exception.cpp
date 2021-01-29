@@ -32,11 +32,23 @@ LT_Exception::LT_Exception(const char *desc) throw() : exception()
     this->desc = desc;
 }
 
+LT_Exception::LT_Exception(const char *desc, char auxDesc) throw() : exception()
+{
+    this->desc = desc;
+    this->auxDesc = auxDesc;
+}
+
 LT_Exception::~LT_Exception() throw()
 {
 }
 
 const char* LT_Exception::what() const throw()
 {
-    return desc;
+    char *finalDesc;
+    
+    finalDesc = (char*) malloc(strlen(desc) + 2);
+    strcpy(finalDesc, desc);
+    finalDesc[strlen(desc)] = auxDesc;
+    finalDesc[strlen(desc)+1] = '\0';
+    return finalDesc;
 }
