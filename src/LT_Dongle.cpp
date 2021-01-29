@@ -373,7 +373,7 @@ void LT_Dongle::sendWriteByte()
     
   makeAddressString(address1, address2, adata);
   
-  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0] >> 1)) < 0)
+  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0])) < 0)
   {
     throw LT_Exception("Fail ioctl address");
   }
@@ -398,7 +398,7 @@ void LT_Dongle::sendWriteWord()
     
   makeAddressString(address1, address2, adata);
   
-  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0] >> 1)) < 0)
+  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0])) < 0)
   {
     throw LT_Exception("Fail ioctl address");
   }
