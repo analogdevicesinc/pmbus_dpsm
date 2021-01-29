@@ -334,11 +334,60 @@ void LT_Dongle::sendRecvBytes()
 
 void LT_Dongle::sendReadByte()
 {
-
+  uint8_t sdata[64];
+  uint8_t adata[2];
+  __s32 result;
+  
+  if (sendWriteDataPosition != 2)
+    throw LT_Exception("Read Byte malformed");
+  if (!address)
+    throw LT_Exception("No Address");
+    
+  LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
+    
+  makeAddressString(address1, address2, adata);
+  
+  printf("readByte %d %d\n", adata[0], sdata[0]);
+    
+  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0])) < 0)
+  {
+    throw LT_Exception("Fail ioctl address");
+  }
+  
+      
+  if ((result = i2c_smbus_read_byte_data(LT_Dongle::file_, sdata[0])) < 0)
+    printf("N\n");
+  else
+    printf("%02x\n", result);
 }
 
 void LT_Dongle::sendReadWord()
 {
+  uint8_t sdata[64];
+  uint8_t adata[2];
+  __s32 result;
+  
+  if (sendWriteDataPosition != 2)
+    throw LT_Exception("Read Word malformed");
+  if (!address)
+    throw LT_Exception("No Address");
+    
+  LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
+    
+  makeAddressString(address1, address2, adata);
+  
+  printf("readWord %d %d\n", adata[0], sdata[0]);
+    
+  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0])) < 0)
+  {
+    throw LT_Exception("Fail ioctl address");
+  }
+  
+      
+  if ((result = i2c_smbus_read_word_data(LT_Dongle::file_, sdata[0])) < 0)
+    printf("N\n");
+  else
+    printf("%04x\n", (result << 8) | (result >> 8));
 }
 
 void LT_Dongle::sendReadBlock()
