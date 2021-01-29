@@ -252,6 +252,9 @@ void LT_Dongle::sendRecvBytes()
   uint8_t buf[64];
   struct i2c_rdwr_ioctl_data i2cData;
   struct i2c_msg msgs[2];
+  int i,j;
+  char qdata[64];
+  char ch;
   int result;
   
   i2cData.msgs = msgs;
@@ -265,85 +268,61 @@ void LT_Dongle::sendRecvBytes()
     
     if (sendWriteDataPosition > 0)
     {
-      printf("sendByte at address 0x%02x with command 0x%02x\n", sdata[0], sdata[1]);
-
-
+      // Ignoring r/w bit.
       if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, sdata[0] >> 1)) < 0)
       {
-        printf("error ioctl %d handle %d\n", result, LT_Dongle::file_);
-        throw LT_Exception("Fail address");
+        throw LT_Exception("Fail ioctl address");
       }
-        //printf("writeByte at address 0x%02x with command 0x%02x and data 0x%02x\n", address, command, sdata);
-
-      //printf("position %d\n", sendWriteDataPosition/2);
       if ((result = write(LT_Dongle::file_,sdata+1,sendWriteDataPosition/2 -1)) < 0)
       {
-       throw LT_Exception("Fail i2c write");
+        // The master cannot write past a NACK, so one N.
+        printf("N\n");
+        return;
       }
-//      switch (sendDataPosition/2)
-//      {
-//        case 2: // SEND BYTE
-//          setNoPec();
-//          if (i2c_smbus_write_byte(LT_Dongle::file_, data[1]) == -1)
-//          {
-//            throw LT_Exception("Send Byte: fail data");
-//          }
-//          break;
-//        case 3:
-//          setPec();
-//          if (i2c_smbus_write_byte(LT_Dongle::file_, data[1]) == -1)
-//          {
-//            throw LT_Exception("Send Byte: fail data");
-//          }
-//          break;
-//        case 3: // SEND BYTE PEC OR WRITE BYTE
-//          setNoPec();
-//          if (i2c_smbus_write_byte_data(LT_Dongle::file_, data[1], data[2]) == -1)
-//          {
-//            throw LT_Exception("Send Byte: fail data");
-//          }
-//          break;
-//        case 4: // WRITE BYTE PEC
-//          setPec();
-//          if (i2c_smbus_write_byte_data(LT_Dongle::file_, data[1], data[2]) == -1)
-//          {
-//            throw LT_Exception("Send Byte: fail data");
-//          }
-//          break;
-        // HOW TO KNOW IF GROUP?
-        // Need raw i2c interface
-//        default:
-//          throw LT_Exception("No protocol for data");
-//      }
     }
   }
 
   if (send && recv)
   {
-    //printf("send/recv\n");
     LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
     LT_Dongle::convertString(sendReadData, sendReadDataPosition, rdata);
     
     if (sendReadDataPosition > 0)
     {
-        //printf("writeByte at address 0x%02x with command 0x%02x and data 0x%02x\n", address, command, data);
-
-      //printf("position %d\n", sendReadDataPosition/2);
-      
+      // Ignoring r/w bit
       i2cData.msgs[0].addr = sdata[0] >> 1;
       i2cData.msgs[0].flags = 0;
       i2cData.msgs[0].len = sendWriteDataPosition/2 - 1;
       i2cData.msgs[0].buf = sdata + 1;
+      // Ignoring r/w bit.
       i2cData.msgs[1].addr = rdata[0] >> 1;
       i2cData.msgs[1].flags = I2C_M_RD | I2C_M_NOSTART;
       i2cData.msgs[1].len = recvReadDataPosition;
       i2cData.msgs[1].buf = buf;
       if ((result = ioctl(LT_Dongle::file_,I2C_RDWR, &i2cData)) < 0)
       {
-        printf("fail with %d\n", result);
-       throw LT_Exception("Fail i2c write/read");
+        // The master cannot write or read past a NACK, so one N.
+        printf("N\n");
+        return;
       }
-
+      j = 0;
+      for(i = 0; i < i2cData.msgs[1].len; i++)
+      {
+        ch = i2cData.msgs[1].buf[i] >> 4;
+        if (ch >= 0 && ch <= 9)
+          ch = ch + 0x30;
+        else
+          ch = ch + 0x41 - 10;
+        qdata[j++] = ch;
+        ch = i2cData.msgs[1].buf[i] & 0x0F;
+        if (ch >= 0 && ch <= 9)
+          ch = ch + 0x30;
+        else
+          ch = ch + 0x41 - 10;
+        qdata[j++] = ch;
+      }
+      qdata[j] = 0;
+      printf("%s\n", qdata);
     }
     
 #endif
@@ -355,6 +334,7 @@ void LT_Dongle::sendRecvBytes()
 
 void LT_Dongle::sendReadByte()
 {
+
 }
 
 void LT_Dongle::sendReadWord()
@@ -369,13 +349,63 @@ void LT_Dongle::sendReadGpio()
 {
 }
 
+void LT_Dongle::makeAddressString(char l, char r, uint8_t *address)
+{
+  char s[3];
+  s[0] = l;
+  s[1] = r;
+  s[2] = '\0';
+  LT_Dongle::convertString(s, 2, address);
+}
+
 void LT_Dongle::sendWriteByte()
 {
+  uint8_t sdata[64];
+  uint8_t adata[2];
+  int result;
+  
+  if (sendWriteDataPosition != 4)
+    throw LT_Exception("Write Byte malformed");
+  if (!address)
+    throw LT_Exception("No Address");
+    
+  LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
+    
+  makeAddressString(address1, address2, adata);
+  
+  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0] >> 1)) < 0)
+  {
+    throw LT_Exception("Fail ioctl address");
+  }
+  
+      
+  if (i2c_smbus_write_byte_data(LT_Dongle::file_, sdata[0], sdata[1]) < 0)
+    printf("N\n");
 }
 
 void LT_Dongle::sendWriteWord()
 {
-}
+  uint8_t sdata[64];
+  uint8_t adata[2];
+  int result;
+
+  if (sendWriteDataPosition != 6)
+    throw LT_Exception("Write Word malformed");
+  if (!address)
+    throw LT_Exception("No Address");
+    
+  LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
+    
+  makeAddressString(address1, address2, adata);
+  
+  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0] >> 1)) < 0)
+  {
+    throw LT_Exception("Fail ioctl address");
+  }
+  
+      
+  if (i2c_smbus_write_word_data(LT_Dongle::file_, sdata[0], (sdata[2] << 8) | sdata[1]) < 0)
+    printf("N\n");}
 
 void LT_Dongle::sendWriteGpio()
 {
@@ -383,9 +413,12 @@ void LT_Dongle::sendWriteGpio()
 
 char printStr[128];
 char printChar[2];
-  
+
+// TODO: #define for replacing exception with reset.
+// TODO: Add timout to reset machine.
 void LT_Dongle::processCommand(uint8_t command)
 {
+//  printf("command %c %d %d \n", command, tstate, pstate);
   switch(tstate)
   {
     case LT_Dongle::STOPPED:
@@ -398,7 +431,7 @@ void LT_Dongle::processCommand(uint8_t command)
           usleep(5000);
           break;
         case 'Z': // LF
-          // TBD
+          printf("\n");
           break;
         case 'I': // DUMP EEPROM
           break;
@@ -411,40 +444,55 @@ void LT_Dongle::processCommand(uint8_t command)
           break;          
         // SMBus
         case 'a': // ADDRESS
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::ADDRESS1;
           break;
         case 'b': // READ BYTE
           expectedBytes = 2;
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::READ_BYTE;
           break;
         case 'B': // SMBUS WRITE BYTE
           expectedBytes = 4;
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::WRITE_BYTE;
           break;
         case 'w': // READ WORD
           expectedBytes = 2;
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::READ_WORD;
           break;
         case 'W': // WRITE WORD
           expectedBytes = 6;
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::WRITE_WORD;
           break;
         case 'k': // READ BLOCK
           expectedBytes = 2;
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::READ_BLOCK;
           break;
         case 'g': // READ GPIO
           expectedBytes = 1;
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::READ_GPIO;
           break;
         case 'G': // WRITE GPIO
           expectedBytes = 2;
+          tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::WRITE_GPIO;
           break;
         case 'e': // ECHO
-          // TBD
+          printf("e\n");
           break;
-          
+        default:
+          throw LT_Exception("Bad command:", command);
+          break;
+      }
+      break;
+    case LT_Dongle::SMBUS:
+      switch(pstate)
+      {
         case LT_Dongle::ADDRESS1:
           address1 = command;
           pstate = LT_Dongle::ADDRESS2;
@@ -452,6 +500,7 @@ void LT_Dongle::processCommand(uint8_t command)
         case LT_Dongle::ADDRESS2:
           address2 = command;
           address = true;
+          tstate = LT_Dongle::STOPPED;
           pstate = LT_Dongle::IDLE;
           break;
         case LT_Dongle::READ_BYTE:
@@ -511,9 +560,9 @@ void LT_Dongle::processCommand(uint8_t command)
           }
           break;
         default:
-          throw LT_Exception("");
+          throw LT_Exception("STOPPED:SMBUS");
       }
-      break;
+      break;      
     case LT_Dongle::STARTED:
       switch(pstate)
       {

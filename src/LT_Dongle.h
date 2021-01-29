@@ -39,7 +39,7 @@ class LT_Dongle
 
   public:
 
-    enum TransactionState { STARTED, RESTARTED, STOPPED };
+    enum TransactionState { STARTED, RESTARTED, STOPPED, SMBUS };
     enum ProtocolState {  IDLE, ADDRESS1, ADDRESS2, SEND,
                         COMMAND, MODE, AUX, READ_BYTE, READ_WORD, READ_BLOCK, READ_GPIO, WRITE_BYTE, WRITE_WORD, WRITE_GPIO, DATA };
 
@@ -67,6 +67,7 @@ class LT_Dongle
     void sendString(const char *s);
     
     void convertString(const char *s, int length, uint8_t *data);
+    void makeAddressString(char l, char r, uint8_t *address);
     
     char *toStateString(ProtocolState state);
     

@@ -656,7 +656,7 @@ int dongleCommandLineInterface()
 	char ch;
 	
 	ch = dongle->recvChar();
-	if (ch == '\n' || ch == '\n')
+	if (ch == '\r' || ch == '\n')
 		return 1;
 	if (ch == 'q')
 		return 0;
