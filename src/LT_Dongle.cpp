@@ -376,14 +376,13 @@ void LT_Dongle::sendReadWord()
     
   makeAddressString(address1, address2, adata);
   
-  printf("readWord %d %d\n", adata[0], sdata[0]);
+  //printf("readWord %d %d\n", adata[0], sdata[0]);
     
   if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0])) < 0)
   {
     throw LT_Exception("Fail ioctl address");
   }
   
-      
   if ((result = i2c_smbus_read_word_data(LT_Dongle::file_, sdata[0])) < 0)
     printf("N\n");
   else
@@ -392,6 +391,94 @@ void LT_Dongle::sendReadWord()
 
 void LT_Dongle::sendReadBlock()
 {
+  uint8_t sdata[64];
+  uint8_t adata[2];
+  uint8_t block[256];
+  __s32 result;
+  __s32 count;
+  int i;
+  
+  struct i2c_rdwr_ioctl_data i2cData;
+  struct i2c_msg msgs[2];
+  int j;
+  char qdata[256];
+  char ch;
+  uint8_t buf[256];
+  
+  i2cData.msgs = msgs;
+  i2cData.nmsgs = 2;
+  
+  unsigned long funcs;
+  result = ioctl(LT_Dongle::file_, I2C_FUNCS, &funcs);
+  // printf("Funcs: %08x %d\n", funcs, funcs & I2C_FUNC_SMBUS_READ_BLOCK_DATA);
+  
+  if (sendWriteDataPosition != 2)
+    throw LT_Exception("Read Block malformed");
+  if (!address)
+    throw LT_Exception("No Address");
+    
+  LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
+    
+  makeAddressString(address1, address2, adata);
+  
+  //printf("readBlock %d %d\n", adata[0], sdata[0]);
+    
+  if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, adata[0])) < 0)
+  {
+    throw LT_Exception("Fail ioctl address");
+  }
+
+  if ((funcs & I2C_FUNC_SMBUS_READ_BLOCK_DATA) > 0)
+  {
+    if ((count = i2c_smbus_read_block_data(LT_Dongle::file_, sdata[0], block)) < 0)
+      printf("N\n");
+    else
+    {
+      for (i = 0; i < count; i++)
+        printf("%02x", block[i]);
+      printf("\n");
+    }
+  }
+  else
+  {
+    if ((result = i2c_smbus_read_byte_data(LT_Dongle::file_, sdata[0])) < 0)
+      printf("N\n");
+    else
+    {
+      i2cData.msgs[0].addr = adata[0];
+      i2cData.msgs[0].flags = 0;
+      i2cData.msgs[0].len = 1;
+      i2cData.msgs[0].buf = sdata;
+      i2cData.msgs[1].addr = adata[0];
+      i2cData.msgs[1].flags = I2C_M_RD | I2C_M_NOSTART;
+      i2cData.msgs[1].len = result + 1;
+      i2cData.msgs[1].buf = buf;
+      if ((result = ioctl(LT_Dongle::file_,I2C_RDWR, &i2cData)) < 0)
+      {
+        // The master cannot write or read past a NACK, so one N.
+        printf("N\n");
+        return;
+      }
+      j = 0;
+      for(i = 0; i < i2cData.msgs[1].len; i++)
+      {
+        ch = i2cData.msgs[1].buf[i] >> 4;
+        if (ch >= 0 && ch <= 9)
+          ch = ch + 0x30;
+        else
+          ch = ch + 0x41 - 10;
+        qdata[j++] = ch;
+        ch = i2cData.msgs[1].buf[i] & 0x0F;
+        if (ch >= 0 && ch <= 9)
+          ch = ch + 0x30;
+        else
+          ch = ch + 0x41 - 10;
+        qdata[j++] = ch;
+      }
+      qdata[j] = 0;
+      printf("%s\n", qdata);
+    } 
+  }
 }
 
 void LT_Dongle::sendReadGpio()
