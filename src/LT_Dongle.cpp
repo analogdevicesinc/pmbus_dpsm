@@ -565,6 +565,7 @@ void LT_Dongle::processCommand(uint8_t command)
           break;
         case 'P': // PAUSE
           usleep(5000);
+          printf("P\n");
           break;
         case 'Z': // LF
           printf("\n");
@@ -612,6 +613,7 @@ void LT_Dongle::processCommand(uint8_t command)
           expectedBytes = 1;
           tstate = LT_Dongle::SMBUS;
           pstate = LT_Dongle::READ_GPIO;
+          printf("0\n");
           break;
         case 'G': // WRITE GPIO
           expectedBytes = 2;
@@ -622,7 +624,7 @@ void LT_Dongle::processCommand(uint8_t command)
           printf("e\n");
           break;
         default:
-          throw LT_Exception("Bad command:", command);
+          //throw LT_Exception("Bad command:", command);
           break;
       }
       break;
