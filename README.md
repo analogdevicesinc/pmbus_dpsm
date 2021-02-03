@@ -57,25 +57,48 @@ Follow these steps:
 
 This will run the application in interactive mode with a menu.
 
-## Automake
+## Building Application
+
+### Automake
 
 Be sure to set the target as you would for any autoconfig project.
 
 $ ./configure
 $ make
 
-## Automake Clean
+### Automake Clean
 
 $ make clean
 $ make distclean
 
-## CMake
+### CMake
 
 $ mkdir build
 $ cd build
 $ cmake ..
 $ make
 
-## CMake Clean
+### CMake Clean
 
 $ make clean
+
+## Dongle
+
+The application can emulate a DC1613A dongle.
+
+### Configure gadgetfs
+
+Edit the boot files:
+
+* Add dtoverlay=dwc2 to /boot/config.txt
+* Add modules-load=dwc2 to /boot/cmdline.txt
+
+Perform the following setup steps:
+
+* sudo modprobe gadgetfs (test if neccessary or can be added to modules-load like dwc2,gadgetfs)
+* sudo mkdir /dev/gadget
+* sudo mount -t gadgetfs none /dev/gadget
+
+### Running the Application
+
+To run the Application as a CLI for manual testing, run it with the -l option.

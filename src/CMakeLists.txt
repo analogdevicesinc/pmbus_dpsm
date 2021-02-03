@@ -59,3 +59,4 @@ list(APPEND _sources
 	LT_Dongle.cpp)
 
 add_executable(lt-pmbusapp LT_PMBusApp.cpp ${_sources})
+target_link_libraries(lt-pmbusapp pthread)
