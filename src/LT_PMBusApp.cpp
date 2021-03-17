@@ -114,8 +114,8 @@ struct io_thread_args {
 static struct io_thread_args thread_args;
 
 static struct usb_string stringtab [] = {
-    { STRINGID_MANUFACTURER, "MyOwnGadget", },
-    { STRINGID_PRODUCT,      "Custom gadget", },
+    { STRINGID_MANUFACTURER, "FTSDI", },
+    { STRINGID_PRODUCT,      "USB Serial Converter", },
     { STRINGID_SERIAL,       "0001", },
     { STRINGID_CONFIG_HS,    "High speed configuration", },
     { STRINGID_CONFIG_LS,    "Low speed configuration", },
@@ -708,7 +708,11 @@ static void* io_thread(void* arg)
     fd_set read_set, write_set;
     struct timeval timeout;
     int ret, max_read_fd, max_write_fd;
-    char buffer[512];
+    char obuffer[512];
+    char ibuffer[512];
+    char *result;
+    char *ibufferPtr;
+    char *obufferPtr;
 
     max_read_fd = max_write_fd = 0;
 
@@ -722,7 +726,9 @@ static void* io_thread(void* arg)
         timeout.tv_sec = 0;
         timeout.tv_usec = 10000; // 10ms
 
-        memset(buffer, 0, sizeof(buffer));
+        
+	memset(ibuffer, 0, sizeof(ibuffer));
+	memset(obuffer, 0, sizeof(obuffer));
         ret = select(max_read_fd+1, &read_set, NULL, NULL, &timeout);
 
         // Timeout
@@ -733,28 +739,53 @@ static void* io_thread(void* arg)
         if (ret < 0)
             break;
 
-        ret = read (thread_args->fd_out, buffer, sizeof(buffer));
+	// This might not get all bytes so resetting obuffer is a problem.
+	// The reset needs to be based on the parsing.
+        ret = read (thread_args->fd_out, ibuffer, sizeof(ibuffer));
 
         if (ret > 0)
-            printf("Read %d bytes : %s\n", ret, buffer);
+	{
+            printf("Read %d bytes : %s\n", ret, ibuffer);
+	    ibufferPtr = ibuffer;
+	    obufferPtr = obuffer;
+	    // Assumes the last value return is the value given back to the usb master device.
+	    while (*ibufferPtr != 0)
+	    {
+		result = dongle->processCommand(*ibufferPtr);
+		printf("Command returned %d %s\n", strlen(result), result);
+		ibufferPtr++;
+		memcpy(obufferPtr, result, strlen(result));
+		obufferPtr += strlen(result);
+		delete result;
+	    }
+	    *obufferPtr = '\0';
+	    printf("obuffer %s \n", obuffer);
+	}
         else
             printf("Read error %d(%m)\n", ret);
 
         FD_ZERO(&write_set);
         FD_SET(thread_args->fd_in, &write_set);
 
-        memset(buffer, 0, sizeof(buffer));
         ret = select(max_write_fd+1, NULL, &write_set, NULL, NULL);
 
         // Error
         if (ret < 0)
+	{
+	    printf("select error\n");
             break;
+	}
 
-        strcpy(buffer, "My name is USBond !");
+	if (strlen(obuffer) > 0)
+	{
+		ret = write (thread_args->fd_in, obuffer, strlen(obuffer));
 
-        ret = write (thread_args->fd_in, buffer, strlen(buffer)+1);
-
-        printf("Write status %d (%m)\n", ret);
+		printf("Write %d bytes : %s\n", ret, obuffer);
+		printf("Write status %d (%m)\n", ret);
+	}
+	else
+		printf("Write 0 bytes\n");
+	
     }
 
     close (thread_args->fd_in);
@@ -1001,12 +1032,12 @@ int dongleLoop()
 
     device_descriptor.bLength = USB_DT_DEVICE_SIZE;
     device_descriptor.bDescriptorType = USB_DT_DEVICE;
-    device_descriptor.bDeviceClass = USB_CLASS_COMM;
+    device_descriptor.bDeviceClass = USB_CLASS_COMM; // USB_CLASS_PER_INTERFACE
     device_descriptor.bDeviceSubClass = 0;
     device_descriptor.bDeviceProtocol = 0;
     //device_descriptor.bMaxPacketSize0 = 255; Set by driver
-    device_descriptor.idVendor = 0xAA; // My own id
-    device_descriptor.idProduct = 0xBB; // My own id
+    device_descriptor.idVendor = 0x0456; // My own id
+    device_descriptor.idProduct = 0xB310; // My own id
     device_descriptor.bcdDevice = 0x0200; // Version
     // Strings
     device_descriptor.iManufacturer = STRINGID_MANUFACTURER;
@@ -1031,7 +1062,7 @@ int dongleLoop()
     if_descriptor.bInterfaceNumber = 0;
     if_descriptor.bAlternateSetting = 0;
     if_descriptor.bNumEndpoints = 2;
-    if_descriptor.bInterfaceClass = USB_CLASS_COMM;
+    if_descriptor.bInterfaceClass = USB_CLASS_COMM; // USB_CLASS_VENDOR_SPEC
     if_descriptor.bInterfaceSubClass = 0;
     if_descriptor.bInterfaceProtocol = 0;
     if_descriptor.iInterface = STRINGID_INTERFACE;

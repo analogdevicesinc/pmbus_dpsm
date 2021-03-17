@@ -39,9 +39,9 @@ class LT_Dongle
 
   public:
 
-    enum TransactionState { STARTED, RESTARTED, STOPPED, SMBUS };
+    enum TransactionState { STARTED, RESTARTED, STOPPED, SMBUS, MODE };
     enum ProtocolState {  IDLE, ADDRESS1, ADDRESS2, SEND,
-                        COMMAND, MODE, AUX, READ_BYTE, READ_WORD, READ_BLOCK, READ_GPIO, WRITE_BYTE, WRITE_WORD, WRITE_GPIO, DATA };
+                          READ_BYTE, READ_WORD, READ_BLOCK, READ_GPIO, WRITE_BYTE, WRITE_WORD, WRITE_GPIO, DATA };
 
 
     LT_Dongle ();
@@ -64,24 +64,24 @@ class LT_Dongle
     void reset();
     
     char recvChar();
-    void sendString(const char *s);
+    char *sendString(const char *s);
     
     void convertString(const char *s, int length, uint8_t *data);
     void makeAddressString(char l, char r, uint8_t *address);
     
     char *toStateString(ProtocolState state);
     
-    void sendRecvBytes();
-    void sendReadByte();
-    void sendReadWord();
-    void sendReadBlock();
-    void sendReadGpio();
-    void sendWriteByte();
-    void sendWriteWord();
-    void sendWriteGpio();
+    char *sendRecvBytes();
+    char *sendReadByte();
+    char *sendReadWord();
+    char *sendReadBlock();
+    char *sendReadGpio();
+    char *sendWriteByte();
+    char *sendWriteWord();
+    char *sendWriteGpio();
 
     //! Process command
-    void processCommand(uint8_t command
+    char *processCommand(uint8_t command
                                 );
 
 };
