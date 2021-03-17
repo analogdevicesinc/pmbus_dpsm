@@ -126,15 +126,14 @@ bool address = false;
 #define SEND_MAX 256
 char sendWriteData[SEND_MAX];
 int sendWriteDataPosition = 0;
-char sendReadData[SEND_MAX];
-int sendReadDataPosition = 0;
+char sendReadData[SEND_MAX][SEND_MAX];
+int sendReadDataPosition[SEND_MAX];
+int sendReadDataIndex = 0;
 bool send = false;
 
 #define RECV_MAX 256
-char recvWriteData[RECV_MAX];
-int recvWriteDataPosition = 0;
-char recvReadData[RECV_MAX];
-int recvReadDataPosition = 0;
+char recvData[RECV_MAX];
+int recvDataPosition = 0;
 bool recv = false;
 
 int expectedBytes = 0;
@@ -145,9 +144,11 @@ void LT_Dongle::reset()
   pstate = IDLE;
   address = false;
   sendWriteDataPosition = 0;
+  for (int i = 0; i < SEND_MAX; i++)
+    sendReadDataPosition[i] = 0;
+  sendReadDataIndex = 0;
   send = false;
-  sendReadDataPosition = 0;
-  recvReadDataPosition = 0;
+  recvDataPosition = 0;
   recv = false;
   expectedBytes = 0;
 }
@@ -278,6 +279,7 @@ char *LT_Dongle::sendRecvBytes()
     
     if (sendWriteDataPosition > 0)
     {
+      printf("write sendWriteData %d\n", sendWriteDataPosition); 
       LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
       
       // Ignoring r/w bit.
@@ -291,20 +293,25 @@ char *LT_Dongle::sendRecvBytes()
         return nack;
       }
     }
-    
-    if (sendReadDataPosition > 0)
+
+    for (int i = 0; i <= sendReadDataIndex; i++)
     {
-      LT_Dongle::convertString(sendReadData, sendReadDataPosition, sdata);
-      
-      // Ignoring r/w bit.
-      if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, sdata[0] >> 1)) < 0)
+      printf("loop %d %d\n", i, sendReadDataPosition[i]);
+      if (sendReadDataPosition[i] > 0)
       {
-        throw LT_Exception("Fail ioctl address");
-      }
-      if ((result = write(LT_Dongle::file_,sdata+1,sendReadDataPosition/2) - 1) < 0)
-      {
-        // The master cannot write past a NACK, so one N.
-        return nack;
+        printf("write sendReadData %d %d\n", i, sendReadDataPosition[i]); 
+        LT_Dongle::convertString(sendReadData[i], sendReadDataPosition[i], sdata);
+        
+        // Ignoring r/w bit.
+        if ((result = ioctl(LT_Dongle::file_, (unsigned long int)I2C_SLAVE, sdata[0] >> 1)) < 0)
+        {
+          throw LT_Exception("Fail ioctl address");
+        }
+        if ((result = write(LT_Dongle::file_,sdata+1,sendReadDataPosition[i]/2 - 1)) < 0)
+        {
+          // The master cannot write past a NACK, so one N.
+          return nack;
+        }
       }
     }
   }
@@ -312,15 +319,15 @@ char *LT_Dongle::sendRecvBytes()
   if (send && recv)
   {
     LT_Dongle::convertString(sendWriteData, sendWriteDataPosition, sdata);
-    LT_Dongle::convertString(sendReadData, sendReadDataPosition, rdata);
-    printf("send %d && recv %d\n", sendWriteDataPosition, recvReadDataPosition);
+    LT_Dongle::convertString(sendReadData[0], sendReadDataPosition[0], rdata);
+    printf("send %d && recv %d\n", sendWriteDataPosition, recvDataPosition);
     
     // This is not going to have RSTARTS in recvReadData
     // Need a multidimensional array.
     
     if (sendWriteDataPosition > 0)
     {
-      printf("have send data\n");
+      printf("have send data/recv data\n");
       // Ignoring r/w bit
       i2cData.msgs[0].addr = sdata[0] >> 1;
       i2cData.msgs[0].flags = 0;
@@ -329,7 +336,7 @@ char *LT_Dongle::sendRecvBytes()
       // Ignoring r/w bit.
       i2cData.msgs[1].addr = rdata[0] >> 1;
       i2cData.msgs[1].flags = I2C_M_RD | I2C_M_NOSTART;
-      i2cData.msgs[1].len = recvReadDataPosition;
+      i2cData.msgs[1].len = recvDataPosition;
       i2cData.msgs[1].buf = buf;
       if ((result = ioctl(LT_Dongle::file_,I2C_RDWR, &i2cData)) < 0)
       {
@@ -863,10 +870,11 @@ char *LT_Dongle::processCommand(uint8_t command)
               pstate = LT_Dongle::SEND;
               printf("Send\n");
               break;
+            // This would be for something reading without a RSTART.
             case 'Q': // RECEIVE ACK
             case 'R': // RECEIVE NACK
-              if (recvWriteDataPosition >= RECV_MAX) throw LT_Exception("Overrun recv buffer");
-                recvWriteData[recvWriteDataPosition++] = '0';
+              if (recvDataPosition >= RECV_MAX) throw LT_Exception("Overrun recv buffer");
+                recvData[recvDataPosition++] = '0';
               recv = true;
               pstate = LT_Dongle::IDLE;
               break;
@@ -897,8 +905,8 @@ char *LT_Dongle::processCommand(uint8_t command)
               return nl;
               break;
             case 's': // RESTART
-              // Ride through so we can capture more S commands in case the repeated start
-              // is for back to back writing, like Group Command Protocol.
+              printf("bump index % d\n", sendReadDataIndex);
+              sendReadDataIndex++;
               break;
             case 'p': // STOP
               if (send || recv)
@@ -917,8 +925,8 @@ char *LT_Dongle::processCommand(uint8_t command)
               break;
             case 'Q': // RECEIVE ACK
             case 'R': // RECEIVE NACK
-              if (recvReadDataPosition >= RECV_MAX) throw LT_Exception("Overrun recv buffer");
-                recvReadData[recvReadDataPosition++] = '0';
+              if (recvDataPosition >= RECV_MAX) throw LT_Exception("Overrun recv buffer");
+                recvData[recvDataPosition++] = '0';
               recv = true;
               pstate = LT_Dongle::IDLE;
               break;
@@ -928,11 +936,13 @@ char *LT_Dongle::processCommand(uint8_t command)
           }
           break;
         case LT_Dongle::SEND:
-          printf("send command %c for pos %d\n", command, sendReadDataPosition);
-          if (sendReadDataPosition >= SEND_MAX) throw LT_Exception("Overrun send buffer");
-          sendReadData[sendReadDataPosition++] = command;
-          // What about the case where there is an RSTART and write but to read?
-          //recv = true;
+          printf("send command %c for pos %d\n", command, sendReadDataPosition[sendReadDataIndex]);
+          printf("send command %c for pos %d\n", command, sendReadDataPosition[sendReadDataIndex]);
+          if (sendReadDataPosition[sendReadDataIndex] >= SEND_MAX) throw LT_Exception("Overrun send buffer");
+          sendReadData[sendReadDataIndex][sendReadDataPosition[sendReadDataIndex]] = command;
+          sendReadDataPosition[sendReadDataIndex] = sendReadDataPosition[sendReadDataIndex] + 1;
+          printf("index %d pos %d\n", sendReadDataIndex, sendReadDataPosition[sendReadDataIndex]);
+          send = true;
           if (--expectedBytes == 0)
             pstate = LT_Dongle::IDLE;
           break;
