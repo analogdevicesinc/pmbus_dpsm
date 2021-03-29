@@ -167,6 +167,56 @@ char *LT_Dongle::sendString(const char *s)
   return ret;
 }
 
+void LT_Dongle::convertData(const uint8_t *data, int length, char *s)
+{
+  int i;
+  
+  for (i = 0; i < length; i++)
+  {
+    switch (data[i] >> 4)
+    {
+      case 0: *s++ = '0'; break;
+      case 1: *s++ = '1'; break;
+      case 2: *s++ = '2'; break;
+      case 3: *s++ = '3'; break;
+      case 4: *s++ = '4'; break;
+      case 5: *s++ = '5'; break;
+      case 6: *s++ = '6'; break;
+      case 7: *s++ = '7'; break;
+      case 8: *s++ = '8'; break;
+      case 9: *s++ = '9'; break;
+      case 10: *s++ = 'A'; break;
+      case 11: *s++ = 'B'; break;
+      case 12: *s++ = 'C'; break;
+      case 13: *s++ = 'D'; break;
+      case 14: *s++ = 'E'; break;
+      case 15: *s++ = 'F'; break;
+      default: throw LT_Exception("Value not supported");
+    }
+    switch (data[i] & 0x0F)
+    {
+      case 0: *s++ = '0'; break;
+      case 1: *s++ = '1'; break;
+      case 2: *s++ = '2'; break;
+      case 3: *s++ = '3'; break;
+      case 4: *s++ = '4'; break;
+      case 5: *s++ = '5'; break;
+      case 6: *s++ = '6'; break;
+      case 7: *s++ = '7'; break;
+      case 8: *s++ = '8'; break;
+      case 9: *s++ = '9'; break;
+      case 10: *s++ = 'A'; break;
+      case 11: *s++ = 'B'; break;
+      case 12: *s++ = 'C'; break;
+      case 13: *s++ = 'D'; break;
+      case 14: *s++ = 'E'; break;
+      case 15: *s++ = 'F'; break;
+      default: throw LT_Exception("Value not supported");
+    }
+  }
+  *s = '\0';
+}
+
 void LT_Dongle::convertString(const char *s, int length, uint8_t *data)
 {
   int i, j;
@@ -379,10 +429,8 @@ char *LT_Dongle::sendReadByte()
   uint8_t sdata[64];
   uint8_t adata[2];
   __s32 result;
+  uint8_t bdata[1];
   char *ret = new char[3];
-  char *nada = new char[2];
-  nada[0] = '\n' ;
-  nada[1] = 0;
   char *nack = new char[3];
   nack[0] = 'N';
   nack[1] = 'N';
@@ -409,9 +457,8 @@ char *LT_Dongle::sendReadByte()
     return nack;
   else
   {
-    ret[0] = result;
-    ret[1] = '\n';
-    ret[2] = 0;
+    bdata[0] = result & 0x000F;
+    convertData(bdata, 1, ret);
     return ret;
   }
 }
@@ -421,10 +468,8 @@ char *LT_Dongle::sendReadWord()
   uint8_t sdata[64];
   uint8_t adata[2];
   __s32 result;
+  uint8_t bdata[2];
   char *ret = new char[4];
-  char *nada = new char[2];
-  nada[0] = '\n' ;
-  nada[1] = 0;
   char *nack = new char[5];
   nack[0] = 'N';
   nack[1] = 'N';
@@ -452,10 +497,9 @@ char *LT_Dongle::sendReadWord()
     return nack;
   else
   {
-    ret[0] = result << 8;
-    ret[1] = result >> 8;
-    ret[2] = '\n';
-    ret[3] = 0;
+    bdata[0] = result & 0x000F;
+    bdata[1] = (result >> 8) & 0x000F;
+    convertData(bdata, 2, ret);
     return ret;
   }
 }
@@ -475,9 +519,6 @@ char *LT_Dongle::sendReadBlock()
   char *qdata = new char[256];
   char ch;
   uint8_t buf[256];
-  char *nada = new char[2];
-  nada[0] = '\n' ;
-  nada[1] = 0;
   char *nack = new char[3];
   nack[0] = 'N';
   nack[1] = 'N';
@@ -512,7 +553,7 @@ char *LT_Dongle::sendReadBlock()
       return nack;
     else
     {
-      block[count] = '\n';
+      block[count] = 0;
       return block;
     }
   }
@@ -551,7 +592,6 @@ char *LT_Dongle::sendReadBlock()
           ch = ch + 0x41 - 10;
         qdata[j++] = ch;
       }
-//      qdata[j++] = '\n';
       qdata[j] = 0;
 
     } 

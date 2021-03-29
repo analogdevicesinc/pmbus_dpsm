@@ -66,6 +66,7 @@ class LT_Dongle
     char recvChar();
     char *sendString(const char *s);
     
+    void convertData(const uint8_t *data, int length, char *s);
     void convertString(const char *s, int length, uint8_t *data);
     void makeAddressString(char l, char r, uint8_t *address);
     

@@ -740,7 +740,7 @@ static void* io_thread(void* arg)
             break;
 
 	// This might not get all bytes so resetting obuffer is a problem.
-	// The reset needs to be based on the parsing.
+	// The reset needs to be based on the parsing?
         ret = read (thread_args->fd_out, ibuffer, sizeof(ibuffer));
 
         if (ret > 0)
