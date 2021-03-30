@@ -99,6 +99,17 @@ Perform the following setup steps:
 * sudo mkdir /dev/gadget
 * sudo mount -t gadgetfs none /dev/gadget
 
+Ref https://www.hardill.me.uk/wordpress/2019/11/02/pi4-usb-c-gadget/
+
+For auto starting
+
+* sudo cp lt-pmbusapp /root
+* sudo echo "mkdir /dev/gadget
+  mount -t gadgetfs none /dev/gadget
+  /root/lt-pmbusapp -g" > dongle.sh
+* chmod +x /root/dongle.sh
+* Add /root/dongle.sh to /etc/rc.local before exit 0
+
 ### Running the Application
 
 To run the Application as a CLI for manual testing, run it with the -l option.
