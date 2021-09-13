@@ -31,11 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "LT_SMBus.h"
 #include "LT_FaultLog.h"
 #include "LT_PMBusMath.h"
-#include "LT_EEDataFaultLog.h"
+#include "LT_CommandPlusFaultLog.h"
 
 //! class that handles LTC2974 fault logs.
 //! contains structs for interpreting the data read from the part.
-class LT_2974FaultLog : public LT_EEDataFaultLog
+class LT_2974FaultLog : public LT_CommandPlusFaultLog
 {
 
   public:

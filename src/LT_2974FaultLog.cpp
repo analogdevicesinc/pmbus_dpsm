@@ -38,34 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define snprintf_P(a,b,c,...) snprintf(a,b,c, __VA_ARGS__)
 #define RAW_EEPROM
 
-void rotate(uint8_t *buf, int start, int len) {
-
-    int count = 0;
-    int offset = 0;
-
-    while (count < len) {
-
-        int index = offset;
-        char tmp = buf[index];
-        int index2 = (start + index) % len;
-
-        while (index2 != offset) {
-
-            buf[index] = buf[index2];
-            count++;
-
-            index = index2;
-            index2 = (start + index) % len;
-        }
-
-        buf[index] = tmp;
-        count++;
-
-        offset++;
-    }
-}
-
-LT_2974FaultLog::LT_2974FaultLog(LT_PMBus *pmbus):LT_EEDataFaultLog(pmbus)
+LT_2974FaultLog::LT_2974FaultLog(LT_PMBus *pmbus):LT_CommandPlusFaultLog(pmbus)
 {
   faultLog2974 = NULL;
 
@@ -101,24 +74,10 @@ LT_2974FaultLog::read(uint8_t address)
 
   uint16_t size = sizeof(struct LT_2974FaultLog::FaultLogLtc2974);
   uint8_t *data = (uint8_t *) malloc(size);
-
+  if (data == 0)
+    printf(F("bad malloc."));
 #ifdef RAW_EEPROM
-  // For MFR_EE_DATA, but would require reversing cyclic data
-  getNvmBlock(address, 384, 128, 0x00, data);
-  // Points to the beginning of the cyclic data
-  uint8_t block_address = data[0];
-  // Shift the last data to the top
-  rotate(&data[72], block_address - 71, 167);
-  // Drop the block address
-  memmove(data, data+1, size-1);
-  // Reverse the order of cyclic data
-  for (int i = 71; i < 71 + 83; i++)
-  {
-    uint8_t d = data[237-(i-71)];
-    data[237-(i-71)] = data[i];
-    data[i] = d;
-  }
-
+  getNvmBlock(address, 0, 128, 0xC8, data);
 #else
   // Read block data with log
   pmbus_->smbus()->readBlock(address, MFR_FAULT_LOG, data, 255);
@@ -136,7 +95,6 @@ LT_2974FaultLog::read(uint8_t address)
 
   faultLog2974 = log;
 }
-
 
 void LT_2974FaultLog::release()
 {

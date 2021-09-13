@@ -56,9 +56,9 @@ void
 LT_7880FaultLog::read(uint8_t address)
 {
 #ifdef RAW_EEPROM
-  uint8_t *data = (uint8_t *) malloc(sizeof(uint8_t) * 80 * 2); // Becuse CRC is stripped, the acutal data size is smaller
+  uint8_t *data = (uint8_t *) malloc(sizeof(uint8_t) * 54 * 2); // Becuse CRC is stripped, the acutal data size is smaller
 
-  getNvmBlock(address, 192, 64, true, data);
+  getNvmBlock(address, 192*2, 54, false, data);
 #else
   uint8_t *data = (uint8_t *) malloc(147);
   data[0] = 0x00;
@@ -229,8 +229,6 @@ void LT_7880FaultLog::printLoop(uint8_t index)
   printf("%d\n", index);
   printf(F("-------\n"));
 
-printf("vout0 %x\n", faultLog7880->fault_log_loop[index].read_vout_p0);
-printf("vout1 %x\n", faultLog7880->fault_log_loop[index].read_vout_p1);
   printf(F("Input: "));
   printf("%f", math_.lin11_to_float(getLin5_11WordReverseVal(faultLog7880->fault_log_loop[index].read_vin)));
   printf(F(" V "));

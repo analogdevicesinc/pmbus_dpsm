@@ -46,19 +46,17 @@ LT_3889FaultLog::LT_3889FaultLog(LT_PMBus *pmbus):LT_EEDataFaultLog(pmbus)
   buffer = NULL;
 }
 
-
 /*
  * Read LTC3889 fault log
  *
  * address: PMBUS address
  */
-void
-LT_3889FaultLog::read(uint8_t address)
+void LT_3889FaultLog::read(uint8_t address)
 {
 #ifdef RAW_EEPROM
-  uint8_t *data = (uint8_t *) malloc(sizeof(uint8_t) * 80 * 2); // Becuse CRC is stripped, the acutal data size is smaller
+  uint8_t *data = (uint8_t *) malloc(sizeof(uint8_t) * 54 * 2); // Becuse CRC is stripped, the acutal data size is smaller
 
-  getNvmBlock(address, 192, 64, true, data);
+  getNvmBlock(address, 192*2, 54, false, data);
 #else
   uint8_t *data = (uint8_t *) malloc(147);
   data[0] = 0x00;
@@ -183,9 +181,9 @@ void LT_3889FaultLog::printPeaks()
 {
   printf(F("\nHeader Information:\n--------\n"));
   printf(F("VOUT Peak 0 "));
-  printf("%f\n", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->preamble.peaks.mfr_vout_peak_p0), 0x14));
+  printf("%f\n", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->preamble.peaks.mfr_vout_peak_p0), 0x16));
   printf(F("VOUT Peak 1 "));
-  printf("%f\n", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->preamble.peaks.mfr_vout_peak_p1), 0x14));
+  printf("%f\n", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->preamble.peaks.mfr_vout_peak_p1), 0x16));
   printf(F("IOUT Peak 0 "));
   printf("%f\n", math_.lin11_to_float(getLin5_11WordReverseVal(faultLog3889->preamble.peaks.mfr_iout_peak_p0)));
   printf(F("IOUT Peak 1 "));
@@ -205,7 +203,7 @@ void LT_3889FaultLog::printAllLoops()
   printf(F("\nFault Log Loops Follow:\n"));
   printf(F("(most recent data first)\n"));
 
-  for (int index = 0; index < 6; index++)
+  for (int index = 0; index < 4; index++)
   {
     printLoop(index);
   }
@@ -219,12 +217,13 @@ void LT_3889FaultLog::printLoop(uint8_t index)
   printf(F("-------\n"));
 
   printf(F("Input: "));
+
   printf("%f", math_.lin11_to_float(getLin5_11WordReverseVal(faultLog3889->fault_log_loop[index].read_vin)));
   printf(F(" V "));
   printf("%f", math_.lin11_to_float(getLin5_11WordReverseVal(faultLog3889->fault_log_loop[index].read_iin)));
   printf(F(" A\n"));
   printf(F("Chan0: "));
-  printf("%f", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->fault_log_loop[index].read_vout_p0), 0x14));
+  printf("%f", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->fault_log_loop[index].read_vout_p0), 0x16));
   printf(F(" V, "));
   printf("%f", math_.lin11_to_float(getLin5_11WordReverseVal(faultLog3889->fault_log_loop[index].read_iout_p0)));
   printf(F(" A\n"));
@@ -235,7 +234,7 @@ void LT_3889FaultLog::printLoop(uint8_t index)
   snprintf_P(buffer, FILE_TEXT_LINE_MAX, PSTR("  STATUS_WORD: 0x%04x\n"), getRawWordReverseVal(faultLog3889->fault_log_loop[index].status_word_p0));
   printf("%s", buffer);
   printf(F("Chan1: "));
-  printf("%f", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->fault_log_loop[index].read_vout_p1), 0x14));
+  printf("%f", math_.lin16_to_float(getLin16WordReverseVal(faultLog3889->fault_log_loop[index].read_vout_p1), 0x16));
   printf(F(" V, "));
   printf("%f", math_.lin11_to_float(getLin5_11WordReverseVal(faultLog3889->fault_log_loop[index].read_iout_p1)));
   printf(F(" A\n"));

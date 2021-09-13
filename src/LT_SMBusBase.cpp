@@ -43,6 +43,7 @@ extern "C"
 #include <stdio.h>
 #endif
 }
+#include <errno.h>
 #include "LT_Exception.h"
 #include "LT_SMBusBase.h"
 
@@ -399,9 +400,12 @@ uint8_t *LT_SMBusBase::probeUnique(uint8_t command)
     if (address == 0x7C)
       continue;
 
-    //printf("File %d Addr 0x%x\n", file_, address);
+    //printf("File %d Addr 0x%x\n", file_, address);./
 
-    if (ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address) < 0)
+    result = ioctl(LT_SMBusBase::file_, (unsigned long int)I2C_SLAVE, address);
+    if (result == EBUSY)
+      continue;
+    else if (result < 0)
       throw LT_Exception("Probe Unique: fail address");
 
     result = i2c_smbus_read_byte_data(LT_SMBusBase::file_, command);

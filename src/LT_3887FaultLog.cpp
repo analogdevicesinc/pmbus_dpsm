@@ -56,11 +56,10 @@ void
 LT_3887FaultLog::read(uint8_t address)
 {
 #ifdef RAW_EEPROM
-  uint8_t *data = (uint8_t *) malloc(sizeof(uint8_t) * 80 * 2); // Becuse CRC is stripped, the acutal data size is smaller
+  uint8_t *data = (uint8_t *) malloc(sizeof(uint8_t) * 54 * 2); // Becuse CRC is stripped, the acutal data size is smaller
 
-  getNvmBlock(address, 192, 80, false, data);
+  getNvmBlock(address, 192*2, 54, true, data);
 #else
-  //printf("DIRECT\n");
   uint8_t *data = (uint8_t *) malloc(147);
   data[0] = 0x00;
 
@@ -207,7 +206,7 @@ void LT_3887FaultLog::printAllLoops()
   printf(F("\nFault Log Loops Follow:\n"));
   printf(F("(most recent data first)\n"));
 
-  for (int index = 0; index < 6; index++)
+  for (int index = 0; index < 4; index++)
   {
     printLoop(index);
   }
