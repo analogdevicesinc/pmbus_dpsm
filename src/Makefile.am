@@ -6,7 +6,7 @@ LT_PMBusApp_SOURCES = LT_PMBusApp.cpp LT_PMBus.cpp LT_SMBus.cpp LT_SMBusBase.cpp
 # -I../dmalloc-5.5.2 -DDMALLOC
 AM_CXXFLAGS = @LT_PMBusApp_CFLAGS@
 # ../dmalloc-5.5.2/libdmallocxx.a
-AM_LDFLAGS = @LT_PMBusApp_LIBS@
+AM_LDFLAGS = @LT_PMBusApp_LIBS@ -li2c
 
 
 
