@@ -313,7 +313,7 @@ pRecordHeaderLengthAndType parse_record(uint8_t (*get_data)(void))
 //  printf("Rec A: %d, 0x%x\n", recordA.Length, recordA.RecordType);
 
   // Allocate enough memory for the whole record
-  data = (uint8_t *)malloc(recordA.Length);
+  data = (uint8_t *)malloc(recordA.Length + sizeof(tRecordHeaderLengthAndType));
 
   // Copy the header portion of the data
   memcpy(data, &recordA, sizeof(tRecordHeaderLengthAndType));

@@ -31,7 +31,6 @@ extern "C"
 {
 #if ENABLE_I2C
 #include <linux/i2c-dev.h>
-#include <i2c/smbus.h>
 #include <fcntl.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
