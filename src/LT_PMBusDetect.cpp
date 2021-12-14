@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "LT_PMBusDeviceLTC3884.h"
 #include "LT_PMBusDeviceLTC3886.h"
 #include "LT_PMBusDeviceLTC3887.h"
+#include "LT_PMBusDeviceLTC3888.h"
 #include "LT_PMBusDeviceLTC3889.h"
 #include "LT_PMBusDeviceLTC7880.h"
 #include "LT_PMBusDeviceLTM4664.h"
@@ -49,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "LT_PMBusDeviceLTC2975.h"
 #include "LT_PMBusDeviceLTC2977.h"
 #include "LT_PMBusDeviceLTC2978.h"
+#include "LT_PMBusDeviceLTC2979.h"
 #include "LT_PMBusDeviceLTC2980.h"
 #include "LT_PMBusDeviceLTM2987.h"
 
@@ -153,6 +155,8 @@ void LT_PMBusDetect::detect ()
       devices_[deviceCnt_++] = device;
     else if ((device = LT_PMBusDeviceLTC3887::detect(pmbus_, addresses[i])) != NULL)
       devices_[deviceCnt_++] = device;
+    else if ((device = LT_PMBusDeviceLTC3888::detect(pmbus_, addresses[i])) != NULL)
+      devices_[deviceCnt_++] = device;
     else if ((device = LT_PMBusDeviceLTC3889::detect(pmbus_, addresses[i])) != NULL)
       devices_[deviceCnt_++] = device;
     else if ((device = LT_PMBusDeviceLTC7880::detect(pmbus_, addresses[i])) != NULL)
@@ -182,6 +186,8 @@ void LT_PMBusDetect::detect ()
     else if ((device = LT_PMBusDeviceLTC2977::detect(pmbus_, addresses[i])) != NULL)
       devices_[deviceCnt_++] = device;
     else if ((device = LT_PMBusDeviceLTC2978::detect(pmbus_, addresses[i])) != NULL)
+      devices_[deviceCnt_++] = device;
+    else if ((device = LT_PMBusDeviceLTC2979::detect(pmbus_, addresses[i])) != NULL)
       devices_[deviceCnt_++] = device;
     else if ((device = LT_PMBusDeviceLTC2980::detect(pmbus_, addresses[i])) != NULL)
       devices_[deviceCnt_++] = device;

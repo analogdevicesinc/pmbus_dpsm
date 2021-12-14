@@ -521,7 +521,7 @@ void menu_2_basic_commands()
 			break;
 	      case 7:
 	        pmbus->restoreFromNvmGlobal();
-	//        usleep(2000 * 1000);
+	        usleep(2000 * 1000);
 	        pmbus->resetGlobal();
 	        break;
 	      case 8:

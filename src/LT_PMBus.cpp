@@ -87,6 +87,9 @@ PsmDeviceType LT_PMBus::deviceType(uint8_t address)
       return LTC3886;
     case 0x4700:
       return LTC3887;
+    case 0x4800:
+    case 0x4880:
+      return LTC3887;
     case 0x4900:
       return LTC3889;
     case 0x49E0:
@@ -3145,6 +3148,7 @@ void LT_PMBus::enablePec(uint8_t address)
     || (t == LTC2974)
     || (t == LTC2975)
     || (t == LTC2977)
+    || (t == LTC2979)
     || (t == LTC2980)
     || (t == LTM2987)
   )
@@ -3183,6 +3187,7 @@ void LT_PMBus::disablePec(uint8_t address)
     || (t == LTC2974)
     || (t == LTC2975)
     || (t == LTC2977)
+    || (t == LTC2979)
     || (t == LTC2980)
     || (t == LTM2987)
   )

@@ -25,6 +25,7 @@ list(APPEND _sources
 	LT_2974FaultLog.cpp
 	LT_3886FaultLog.cpp
 	LT_PMBus.cpp
+	LT_PMBusDeviceLTC2979.cpp
 	LT_PMBusDeviceLTC2980.cpp
 	LT_PMBusDeviceLTC7880.cpp
 	LT_PMBusDeviceLTM4686.cpp

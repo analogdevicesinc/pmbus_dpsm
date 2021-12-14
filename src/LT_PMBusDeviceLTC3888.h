@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020, Analog Devices Inc
+Copyright (c) 2021, Analog Devices Inc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -25,27 +25,47 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef LT_PMBusDeviceLTC2980_H_
-#define LT_PMBusDeviceLTC2980_H_
+#ifndef LT_PMBusDeviceLTC3888_H_
+#define LT_PMBusDeviceLTC3888_H_
 
-#include "LT_PMBusDeviceManager.h"
-#include "LT_2977FaultLog.h"
+#include "LT_PMBusDeviceController.h"
+#include "LT_PMBusRail.h"
+#include "LT_3888FaultLog.h"
 
-
-
-class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
+class LT_PMBusDeviceLTC3888 : public LT_PMBusDeviceController
 {
   public:
 
     static uint32_t cap_;
 
-    LT_PMBusDeviceLTC2980(LT_PMBus *pmbus, uint8_t address) : LT_PMBusDeviceManager(pmbus, address, 8)
+    LT_PMBusDeviceLTC3888(LT_PMBus *pmbus, uint8_t address) : LT_PMBusDeviceController(pmbus, address, 2)
     {
     }
 
+    static LT_PMBusDevice *detect(LT_PMBus *pmbus, uint8_t address)
+    {
+      uint16_t id;
+      LT_PMBusDeviceLTC3888 *device;
+
+      id = pmbus->getMfrSpecialId(address);
+      if (     (id & 0xFFF0) == 0x4800
+            || (id & 0xFFF0) == 0x4880)      {
+        if (pmbus->getRailAddress(address) != address)
+        {
+          device = new LT_PMBusDeviceLTC3888(pmbus, address);
+          device->probeSpeed();
+          return device;
+        }
+        else
+          return NULL;
+      }
+      else
+        return NULL;
+    }
+    
     void reset()
     {
-        pmbus_->restoreFromNvm(address_);
+        pmbus_->reset(address_);
         pmbus_->smbus()->waitForAck(address_, 0x00);
         pmbus_->waitForNotBusy(address_);
     }
@@ -65,56 +85,28 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
       return (cap_ & capability) == capability;
     }
 
-    char *getType(void)
-    {
-      uint8_t *model = (uint8_t *) calloc(8,1);
-      memcpy(model, "LTC2980", 7);
-      return (char *) model;
-    }
-
     uint8_t getNumPages(void)
     {
-      return 8;
-    }
-
-    static LT_PMBusDevice *detect(LT_PMBus *pmbus, uint8_t address)
-    {
-      uint16_t id;
-      LT_PMBusDeviceLTC2980 *device;
-
-      id = pmbus->getMfrSpecialId(address);
-      if (  (id & 0xFFF0) == 0x0130
-            || (id & 0xFFF0) == 0x8030
-            || (id & 0xFFF0) == 0x8040
-            || (id & 0xFFF0) == 0x80A0
-            || (id & 0xFFF0) == 0x80B0
-            || (id & 0xFFF0) == 0x80C0)
-      {
-        device = new LT_PMBusDeviceLTC2980(pmbus, address);
-        device->probeSpeed();
-        return device;
-      }
-      else
-        return NULL;
+      return 2;
     }
 
     void enableFaultLog()
     {
-      LT_2977FaultLog *faultLog = new LT_2977FaultLog(pmbus_);
+      LT_3888FaultLog *faultLog = new LT_3888FaultLog(pmbus_);
       faultLog->enableFaultLog(address_);
       delete faultLog;
     }
 
     void disableFaultLog()
     {
-      LT_2977FaultLog *faultLog = new LT_2977FaultLog(pmbus_);
+      LT_3888FaultLog *faultLog = new LT_3888FaultLog(pmbus_);
       faultLog->disableFaultLog(address_);
       delete faultLog;
     }
 
     bool hasFaultLog()
     {
-      LT_2977FaultLog *faultLog = new LT_2977FaultLog(pmbus_);
+      LT_3888FaultLog *faultLog = new LT_3888FaultLog(pmbus_);
       if (faultLog->hasFaultLog(address_))
       {
         delete faultLog;
@@ -129,7 +121,7 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
 
     char *getFaultLog()
     {
-      LT_2977FaultLog *faultLog = new LT_2977FaultLog(pmbus_);
+      LT_3888FaultLog *faultLog = new LT_3888FaultLog(pmbus_);
       if (faultLog->hasFaultLog(address_))
       {
         faultLog->read(address_);
@@ -148,7 +140,7 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
 
     void printFaultLog()
     {
-      LT_2977FaultLog *faultLog = new LT_2977FaultLog(pmbus_);
+      LT_3888FaultLog *faultLog = new LT_3888FaultLog(pmbus_);
       if (faultLog->hasFaultLog(address_))
       {
         faultLog->read(address_);
@@ -161,7 +153,7 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
 
     void clearFaultLog()
     {
-      LT_2977FaultLog *faultLog = new LT_2977FaultLog(pmbus_);
+      LT_3888FaultLog *faultLog = new LT_3888FaultLog(pmbus_);
       if (faultLog->hasFaultLog(address_))
       {
         faultLog->clearFaultLog(address_);
@@ -175,7 +167,7 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
 
     void storeFaultLog()
     {
-      LT_2977FaultLog *faultLog = new LT_2977FaultLog(pmbus_);
+      LT_3888FaultLog *faultLog = new LT_3888FaultLog(pmbus_);
       if (!faultLog->hasFaultLog(address_))
       {
         faultLog->storeFaultLog(address_);
@@ -188,4 +180,4 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
     }
 };
 
-#endif /* LT_PMBusDeviceLTC2980_H_ */
+#endif /* LT_PMBusDeviceLTC3888_H_ */

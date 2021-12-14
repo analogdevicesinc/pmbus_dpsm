@@ -57,11 +57,17 @@ Follow these steps:
 
 This will run the application in interactive mode with a menu.
 
+## Automake from scratch
+
+aclocal
+autoconf
+configure
+
 ## Automake
 
 Be sure to set the target as you would for any autoconfig project.
 
-$ ./configure
+$ configure
 $ make
 
 ## Automake Clean

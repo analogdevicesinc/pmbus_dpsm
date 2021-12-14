@@ -73,7 +73,7 @@ LT_FaultLog::hasFaultLog(uint8_t address)
   PsmDeviceType t = pmbus_->deviceType(address);
   //printf("Device type %d\n", t);
 
-  if (t == LTC3880 || t == LTC3884 || t == LTC3886 || t == LTC3887 || t == LTC3889 || t == LTC7880 || t == LTM4664 || t == LTM4675 || t == LTM4676|| t == LTM4676A || t == LTM4677 || t == LTM4678 || t == LTM4680 || t == LTM4686 || t == LTM4700)
+  if (t == LTC3880 || t == LTC3884 || t == LTC3886 || t == LTC3887 || t == LTC3888 || t == LTC3889 || t == LTC7880 || t == LTM4664 || t == LTM4675 || t == LTM4676|| t == LTM4676A || t == LTM4677 || t == LTM4678 || t == LTM4680 || t == LTM4686 || t == LTM4700)
   {
     status = readMfrStatusByte(address);
     return (status & LTC3880_SMFR_FAULT_LOG) > 0;
@@ -93,7 +93,7 @@ LT_FaultLog::hasFaultLog(uint8_t address)
     status = readMfrFaultLogStatusByte(address);
     return (status & LTC2974_SFL_EEPROM) > 0;
   }
-  else if (t == LTC2977 || t == LTC2978 || t == LTC2980 || t == LTM2987)
+  else if (t == LTC2977 || t == LTC2978 || t == LTC2979 || t == LTC2980 || t == LTM2987)
   {
     status = readMfrFaultLogStatusByte(address);
     return status & LTC2978_SFL_EEPROM > 0;
@@ -123,6 +123,7 @@ LT_FaultLog::enableFaultLog(uint8_t address)
     || (t == LTC3883)
     || (t == LTC3884)
     || (t == LTC3886)
+    || (t == LTC3888)
     || (t == LTC3889)
     || (t == LTC7880)
     || (t == LTM4664)
@@ -147,6 +148,7 @@ LT_FaultLog::enableFaultLog(uint8_t address)
     || (t == LTC2974)
     || (t == LTC2975)
     || (t == LTC2977)
+    || (t == LTC2979)
     || (t == LTC2980)
     || (t == LTM2987)
   )
@@ -177,6 +179,7 @@ LT_FaultLog::disableFaultLog(uint8_t address)
     || (t == LTC3883)
     || (t == LTC3884)
     || (t == LTC3886)
+    || (t == LTC3888)
     || (t == LTC3889)
     || (t == LTC7880)
     || (t == LTM4664)
@@ -199,6 +202,7 @@ LT_FaultLog::disableFaultLog(uint8_t address)
     || (t == LTC2974)
     || (t == LTC2975)
     || (t == LTC2977)
+    || (t == LTC2979)
     || (t == LTC2980)
     || (t == LTM2987)
   )

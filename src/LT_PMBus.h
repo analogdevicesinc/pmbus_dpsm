@@ -326,6 +326,7 @@ enum PsmDeviceType
   LTC3884,
   LTC3886,
   LTC3887,
+  LTC3888,
   LTC3889,
   LTC7880,
   LTM4664,

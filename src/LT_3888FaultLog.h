@@ -25,17 +25,17 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef LT_3889FaultLog_H_
-#define LT_3889FaultLog_H_
+#ifndef LT_3888FaultLog_H_
+#define LT_3888FaultLog_H_
 
 #include "LT_SMBus.h"
 #include "LT_FaultLog.h"
 #include "LT_PMBusMath.h"
 #include "LT_EEDataFaultLog.h"
 
-//! class that handles LTC3889 fault logs.
+//! class that handles LTC3888 fault logs.
 //! contains structs for interpreting the data read from the part.
-class LT_3889FaultLog : public LT_EEDataFaultLog
+class LT_3888FaultLog : public LT_EEDataFaultLog
 {
 
   public:
@@ -43,10 +43,10 @@ class LT_3889FaultLog : public LT_EEDataFaultLog
 
 
     /********************************************************************
-     * LTC3889 types
+     * LTC3888 types
      ********************************************************************/
 
-    struct FaultLogTelemetrySummaryLtc3889
+    struct FaultLogTelemetrySummaryLtc3888
     {
       public:
         struct Lin16WordReverse mfr_vout_peak_p0;
@@ -61,17 +61,17 @@ class LT_3889FaultLog : public LT_EEDataFaultLog
         struct Lin5_11WordReverse read_temperature_2;
     };
 
-    struct FaultLogPreambleLtc3889
+    struct FaultLogPreambleLtc3888
     {
       public:
         uint16_t lt;
         uint16_t mfr_special_id;
         uint8_t position_fault;
         struct FaultLogTimeStamp shared_time;
-        struct FaultLogTelemetrySummaryLtc3889 peaks;
+        struct FaultLogTelemetrySummaryLtc3888 peaks;
     };
 
-    struct FaultLogReadLoopLtc3889
+    struct FaultLogReadLoopLtc3888
     {
       public:
         struct Lin16WordReverse read_vout_p0;
@@ -80,8 +80,8 @@ class LT_3889FaultLog : public LT_EEDataFaultLog
         struct Lin5_11WordReverse read_iout_p0;
         struct Lin5_11WordReverse read_iout_p1;
 
-        struct Lin5_11WordReverse read_vin;
-        struct Lin5_11WordReverse read_iin;
+        struct Lin5_11WordReverse read_vin ;
+        struct Lin5_11WordReverse skip;
 
         struct RawByte status_vout_p0;
         struct RawByte status_vout_p1;
@@ -93,21 +93,21 @@ class LT_3889FaultLog : public LT_EEDataFaultLog
         struct RawByte status_mfr_specificP1;
     };
 
-    struct FaultLogLtc3889
+    struct FaultLogLtc3888
     {
       public:
-        struct FaultLogPreambleLtc3889 preamble;
-        struct FaultLogReadLoopLtc3889 fault_log_loop[6];
+        struct FaultLogPreambleLtc3888 preamble;
+        struct FaultLogReadLoopLtc3888 fault_log_loop[6];
     };
 
 #pragma pack(pop)
 
   protected:
-    FaultLogLtc3889   *faultLog3889;
+    FaultLogLtc3888   *faultLog3888;
 
   public:
     //! Constructor
-    LT_3889FaultLog(LT_PMBus *pmbus   //!< pmbus object reference for this fault log handler to use.
+    LT_3888FaultLog(LT_PMBus *pmbus   //!< pmbus object reference for this fault log handler to use.
                    );
 
     //! Pretty prints this part's fault log to a Print inheriting object, or Serial if none specified.
@@ -128,9 +128,9 @@ class LT_3889FaultLog : public LT_EEDataFaultLog
              );
 
     // ! Get the fault log data
-    struct FaultLogLtc3889 *get()
+    struct FaultLogLtc3888 *get()
     {
-      return faultLog3889;
+      return faultLog3888;
     }
 
     //! Frees the memory reserved for the fault log.

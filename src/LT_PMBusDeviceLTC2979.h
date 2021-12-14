@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020, Analog Devices Inc
+Copyright (c) 2021, Analog Devices Inc
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -25,21 +25,21 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef LT_PMBusDeviceLTC2980_H_
-#define LT_PMBusDeviceLTC2980_H_
+#ifndef LT_PMBusDeviceLTC2979_H_
+#define LT_PMBusDeviceLTC2979_H_
 
 #include "LT_PMBusDeviceManager.h"
 #include "LT_2977FaultLog.h"
 
 
 
-class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
+class LT_PMBusDeviceLTC2979 : public LT_PMBusDeviceManager
 {
   public:
 
     static uint32_t cap_;
 
-    LT_PMBusDeviceLTC2980(LT_PMBus *pmbus, uint8_t address) : LT_PMBusDeviceManager(pmbus, address, 8)
+    LT_PMBusDeviceLTC2979(LT_PMBus *pmbus, uint8_t address) : LT_PMBusDeviceManager(pmbus, address, 8)
     {
     }
 
@@ -68,7 +68,7 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
     char *getType(void)
     {
       uint8_t *model = (uint8_t *) calloc(8,1);
-      memcpy(model, "LTC2980", 7);
+      memcpy(model, "LTC2979", 7);
       return (char *) model;
     }
 
@@ -80,17 +80,13 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
     static LT_PMBusDevice *detect(LT_PMBus *pmbus, uint8_t address)
     {
       uint16_t id;
-      LT_PMBusDeviceLTC2980 *device;
+      LT_PMBusDeviceLTC2979 *device;
 
       id = pmbus->getMfrSpecialId(address);
-      if (  (id & 0xFFF0) == 0x0130
-            || (id & 0xFFF0) == 0x8030
-            || (id & 0xFFF0) == 0x8040
-            || (id & 0xFFF0) == 0x80A0
-            || (id & 0xFFF0) == 0x80B0
-            || (id & 0xFFF0) == 0x80C0)
+      if (     (id & 0xFFF0) == 0x8060
+            || (id & 0xFFF0) == 0x8070)
       {
-        device = new LT_PMBusDeviceLTC2980(pmbus, address);
+        device = new LT_PMBusDeviceLTC2979(pmbus, address);
         device->probeSpeed();
         return device;
       }
@@ -188,4 +184,4 @@ class LT_PMBusDeviceLTC2980 : public LT_PMBusDeviceManager
     }
 };
 
-#endif /* LT_PMBusDeviceLTC2980_H_ */
+#endif /* LT_PMBusDeviceLTC2979_H_ */
